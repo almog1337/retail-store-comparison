@@ -6,10 +6,10 @@ from fetchers.retailFetcher import RetailFetcher
 from parsers.retailParser import RetailParser
 
 
-class RetailIngester(ABC):
+class RetailOrchestrator(ABC):
     """Base interface for orchestrating scraping, fetching, and parsing."""
 
     @abstractmethod
-    def ingest(self, time_back: timedelta = None) -> List[Dict[str, str]]:
+    def extract(self, time_back: timedelta = None) -> List[Dict[str, str]]:
         """Fetch files, download, extract, and parse them."""
-        pass
+        raise NotImplementedError

@@ -4,7 +4,7 @@ from pathlib import Path
 from scrapers.shufersalScraper import ShufersalScraper
 from fetchers.shufersalFetcher import ShufersalFetcher
 from parsers.shufersalParser import ShufersalParser
-from ingesters.shufersalIngester import ShufersalIngester
+from orchestrators.shufersalOrchestrator import ShufersalOrchestrator
 from uploader.upload_to_minio import upload_data_to_minio
 
 
@@ -12,9 +12,9 @@ def main():
     scraper = ShufersalScraper()
     fetcher = ShufersalFetcher()
     parser = ShufersalParser()
-    ingester = ShufersalIngester(scraper, fetcher, parser)
+    orchestrator = ShufersalOrchestrator(scraper, fetcher, parser)
 
-    parsed_records = ingester.ingest(time_back=timedelta(hours=2))
+    parsed_records = orchestrator.extract(time_back=timedelta(hours=2))
 
     #### comment for almog ####
     #### you need to change logic of saving to s3 with record for each day&retailer ####
