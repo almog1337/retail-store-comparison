@@ -3,6 +3,10 @@ import requests
 from typing import List, Optional
 from .retailScraper import RetailScraper, FileMetadata
 from bs4 import BeautifulSoup
+import urllib3
+
+# Disable SSL warnings for Shufersal's site
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class ShufersalScraper(RetailScraper):
@@ -64,10 +68,13 @@ class ShufersalScraper(RetailScraper):
     def _fetch_pages_with_time_filter(self, page_count: int, stop_date: Optional[datetime]) -> List[FileMetadata]:
         """Fetch files from pages and filter by time window."""
         all_files: List[FileMetadata] = []
+        print(f"Shufersal: Fetching files from {page_count} pages...")
 
         for page in range(1,  page_count + 1):
+            print(f"Shufersal: Processing page {page}/{page_count}...", end=" ")
             files_metadata = self.fetch_files_metadata(page)
             if not files_metadata:
+                print("No files found")
                 break
 
             recent_files = [
@@ -76,10 +83,13 @@ class ShufersalScraper(RetailScraper):
             ]
 
             all_files.extend(recent_files)
+            print(f"Found {len(recent_files)} files within time window")
 
             if not recent_files:
+                print("Shufersal: No more recent files found, stopping pagination")
                 break
 
+        print(f"Shufersal: Completed. Total files collected: {len(all_files)}")
         return all_files
 
     def fetch(self, time_back: timedelta = None) -> List[FileMetadata]:
