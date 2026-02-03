@@ -11,11 +11,25 @@ __pycache__/
 # Virtual environments
 .venv/
 venv/
+env/
+
+# uv
+.python-version
+uv.lock
 
 # Python tooling caches
 .pytest_cache/
 .mypy_cache/
+.ruff_cache/
 .ipynb_checkpoints/
+*.egg-info/
+dist/
+build/
 
 # Editor settings
 .vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
