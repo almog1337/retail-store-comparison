@@ -1,19 +1,19 @@
 from datetime import timedelta
 from typing import Dict, List
-from orchestrators.retailOrchestrator import RetailOrchestrator
-from scrapers.retailScraper import RetailScraper
-from fetchers.retailFetcher import RetailFetcher
-from parsers.retailParser import RetailParser
+from abstractions.scraping_pipeline import ScrapingPipeline
+from abstractions.link_extractor import LinkExtractor
+from abstractions.file_downloader import FileDownloader
+from abstractions.parser import Parser
 
 
-class ShufersalOrchestrator(RetailOrchestrator):
+class shufersalPipeline(ScrapingPipeline):
     """Orchestrates Shufersal scraping, fetching, and parsing."""
 
     def __init__(
         self,
-        scraper: RetailScraper,
-        fetcher: RetailFetcher,
-        parser: RetailParser,
+        scraper: LinkExtractor,
+        fetcher: FileDownloader,
+        parser: Parser,
     ) -> None:
         self.scraper = scraper
         self.fetcher = fetcher

@@ -1,17 +1,17 @@
 import gzip
 import requests
-from scrapers.retailScraper import FileMetadata
-from fetchers.retailFetcher import RetailFetcher
+from abstractions.link_extractor import Link
+from abstractions.file_downloader import FileDownloader
 
 
-class ShufersalFetcher(RetailFetcher):
+class ShufersalDownloader(FileDownloader):
     """Fetcher for Shufersal .gz files."""
 
     def __init__(self, timeout: int = 30, verify_ssl: bool = False) -> None:
         self.timeout = timeout
         self.verify_ssl = verify_ssl
 
-    def download_and_extract(self, file_meta: FileMetadata) -> str:
+    def download_and_extract(self, file_meta: Link) -> str:
         """Download and extract a Shufersal .gz file."""
         response = requests.get(file_meta["url"], timeout=self.timeout, verify=self.verify_ssl)
         response.raise_for_status()

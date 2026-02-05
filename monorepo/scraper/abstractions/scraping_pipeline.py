@@ -1,12 +1,8 @@
 from abc import ABC, abstractmethod
 from datetime import timedelta
 from typing import Dict, List
-from scrapers.retailScraper import RetailScraper
-from fetchers.retailFetcher import RetailFetcher
-from parsers.retailParser import RetailParser
 
-
-class RetailOrchestrator(ABC):
+class ScrapingPipeline(ABC):
     """Base interface for orchestrating scraping, fetching, and parsing."""
 
     @abstractmethod

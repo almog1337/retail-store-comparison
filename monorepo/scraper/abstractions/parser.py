@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import List, Dict
 
 
-class RetailParser(ABC):
+class Parser(ABC):
     """Base interface for parsing retail file content."""
 
     @abstractmethod

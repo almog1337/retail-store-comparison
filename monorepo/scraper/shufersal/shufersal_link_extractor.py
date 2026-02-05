@@ -1,22 +1,17 @@
 from datetime import timedelta, datetime
 import requests
 from typing import List, Optional
-from .retailScraper import RetailScraper, FileMetadata
+from abstractions.link_extractor import LinkExtractor, Link
 from bs4 import BeautifulSoup
-import urllib3
 
-# Disable SSL warnings for Shufersal's site
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-
-class ShufersalScraper(RetailScraper):
+class ShufersalLinkExtractor(LinkExtractor):
     """Scraper for Shufersal file links."""
 
     def __init__(self) -> None:
         self.base_url: str = "https://prices.shufersal.co.il/"
         self.divider: str = '/?page='
 
-    def fetch_files_metadata(self, page: int) -> Optional[List[FileMetadata]]:
+    def fetch_files_metadata(self, page: int) -> Optional[List[Link]]:
         """Fetch file metadata from Shufersal."""
         try:
             response = requests.get(self.base_url, params={'page': page}, verify=False)
@@ -57,7 +52,7 @@ class ShufersalScraper(RetailScraper):
             print(f"Error fetching page count from {self.base_url}: {e}")
             return 1
 
-    def _is_file_within_time_window(self, file_meta: FileMetadata, stop_date: Optional[datetime]) -> bool:
+    def _is_file_within_time_window(self, file_meta: Link, stop_date: Optional[datetime]) -> bool:
         """Check if a file's date is within the time window."""
         try:
             file_date = datetime.strptime(file_meta['date'], '%m/%d/%Y %I:%M:%S %p')
@@ -65,9 +60,9 @@ class ShufersalScraper(RetailScraper):
         except ValueError:
             return False
 
-    def _fetch_pages_with_time_filter(self, page_count: int, stop_date: Optional[datetime]) -> List[FileMetadata]:
+    def _fetch_pages_with_time_filter(self, page_count: int, stop_date: Optional[datetime]) -> List[Link]:
         """Fetch files from pages and filter by time window."""
-        all_files: List[FileMetadata] = []
+        all_files: List[Link] = []
         print(f"Shufersal: Fetching files from {page_count} pages...")
 
         for page in range(1,  page_count + 1):
@@ -92,7 +87,7 @@ class ShufersalScraper(RetailScraper):
         print(f"Shufersal: Completed. Total files collected: {len(all_files)}")
         return all_files
 
-    def fetch(self, time_back: timedelta = None) -> List[FileMetadata]:
+    def fetch(self, time_back: timedelta = None) -> List[Link]:
         """Fetch and filter file metadata by time."""
         count = self.fetch_page_count()
         stop_date = datetime.now() - time_back if time_back else None

@@ -1,17 +1,17 @@
 from abc import ABC, abstractmethod
 from typing import List
-from scrapers.retailScraper import FileMetadata
+from abstractions.link_extractor import Link
 
 
-class RetailFetcher(ABC):
+class FileDownloader(ABC):
     """Base interface for downloading and extracting retail files."""
 
     @abstractmethod
-    def download_and_extract(self, file_meta: FileMetadata) -> str:
+    def download_and_extract(self, file_meta: Link) -> str:
         """Download and extract a single file."""
         pass
 
-    def download_and_extract_all(self, files: List[FileMetadata]) -> List[str]:
+    def download_and_extract_all(self, files: List[Link]) -> List[str]:
         """Download and extract multiple files sequentially."""
         extracted: List[str] = []
         for file_meta in files:

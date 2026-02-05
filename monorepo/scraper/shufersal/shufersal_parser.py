@@ -1,9 +1,9 @@
 import xml.etree.ElementTree as ET
 from typing import Dict, List
-from parsers.retailParser import RetailParser
+from abstractions.parser import Parser
 
 
-class ShufersalParser(RetailParser):
+class ShufersalParser(Parser):
     """Parser for Shufersal XML price files."""
 
     def _text(self, node: ET.Element) -> str:

@@ -1,15 +1,17 @@
 from datetime import timedelta
-
-from bootstrapper import create_orchestrators
+from bootstrapper import create_pipelines
 from pipeline_runner import PipelineRunner
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
 
 
 def main():
-    orchestrators = create_orchestrators()
-    runner = PipelineRunner(orchestrators)
+    pipelines = create_pipelines()
+    runner = PipelineRunner(pipelines)
 
     parsed_records = runner.run_and_upload(
-        orchestrator_name="shufersal",
+        pipeline_name="shufersal",
         time_back=timedelta(hours=2),
         create_bucket=True,
     )

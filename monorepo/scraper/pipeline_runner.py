@@ -9,20 +9,19 @@ from uploaders.upload_to_minio import upload_data_to_minio
 
 
 class PipelineRunner:
-    """Handles running orchestrators and uploading results to MinIO."""
+    """Handles running pipelines and uploading results to MinIO."""
 
-    def __init__(self, orchestrators: Dict):
+    def __init__(self, pipelines: Dict):
         """
-        Initialize the pipeline runner with orchestrators.
-
+        Initialize the pipeline runner with pipelines.
         Args:
-            orchestrators: Dictionary of orchestrator instances keyed by name
+            pipelines: Dictionary of pipeline instances keyed by name
         """
-        self.orchestrators = orchestrators
+        self.pipelines = pipelines
 
     def run_and_upload(
         self,
-        orchestrator_name: str,
+        pipeline_name: str,
         time_back: Optional[timedelta] = None,
         create_bucket: bool = True,
         bucket: Optional[str] = None,
@@ -31,10 +30,10 @@ class PipelineRunner:
         secret_key: Optional[str] = None,
     ) -> list:
         """
-        Run a specific orchestrator and upload results to MinIO.
+        Run a specific pipeline and upload results to MinIO.
 
         Args:
-            orchestrator_name: Name of the orchestrator to run
+            pipeline_name: Name of the pipeline to run
             time_back: How far back to fetch data (default: 2 hours)
             create_bucket: Whether to create bucket if it doesn't exist
             bucket: MinIO bucket name (optional, uses default if not provided)
@@ -46,20 +45,20 @@ class PipelineRunner:
             List of parsed records
 
         Raises:
-            KeyError: If orchestrator_name is not found
+            KeyError: If pipeline_name is not found
         """
-        if orchestrator_name not in self.orchestrators:
-            raise KeyError(f"Orchestrator '{orchestrator_name}' not found")
+        if pipeline_name not in self.pipelines:
+            raise KeyError(f"Pipeline '{pipeline_name}' not found")
 
         time_back = time_back or timedelta(hours=2)
-        orchestrator = self.orchestrators[orchestrator_name]
+        pipeline = self.pipelines[pipeline_name]
 
         # Extract data
-        parsed_records = orchestrator.extract(time_back=time_back)
+        parsed_records = pipeline.extract(time_back=time_back)
 
         # Generate key with current date
         ingest_date = datetime.utcnow().date().isoformat()
-        key = f"bronze/{orchestrator_name}/ingest_date={ingest_date}/parsed_records.txt"
+        key = f"bronze/{pipeline_name}/ingest_date={ingest_date}/parsed_records.txt"
 
         # Upload to MinIO
         upload_data_to_minio(
@@ -85,7 +84,7 @@ class PipelineRunner:
         max_workers: int = 1,
     ) -> Dict[str, list]:
         """
-        Run all orchestrators and upload their results to MinIO.
+        Run all pipelines and upload their results to MinIO.
 
         Args:
             time_back: How far back to fetch data (default: 2 hours)
@@ -94,17 +93,17 @@ class PipelineRunner:
             endpoint: MinIO endpoint URL (optional)
             access_key: MinIO access key (optional)
             secret_key: MinIO secret key (optional)
-            max_workers: Maximum number of orchestrators to run concurrently (default: 1)
+            max_workers: Maximum number of pipelines to run concurrently (default: 1)
 
         Returns:
-            Dictionary mapping orchestrator names to their parsed records
+            Dictionary mapping pipeline names to their parsed records
         """
         if max_workers == 1:
             # Sequential execution
             results = {}
-            for orchestrator_name in self.orchestrators:
+            for pipeline_name in self.pipelines:
                 records = self.run_and_upload(
-                    orchestrator_name=orchestrator_name,
+                    pipeline_name=pipeline_name,
                     time_back=time_back,
                     create_bucket=create_bucket,
                     bucket=bucket,
@@ -112,7 +111,7 @@ class PipelineRunner:
                     access_key=access_key,
                     secret_key=secret_key,
                 )
-                results[orchestrator_name] = records
+                results[pipeline_name] = records
             return results
         else:
             # Concurrent execution using asyncio
@@ -141,11 +140,11 @@ class PipelineRunner:
         """Internal method for concurrent execution using asyncio."""
         semaphore = asyncio.Semaphore(max_workers)
         
-        async def run_with_semaphore(orchestrator_name: str):
+        async def run_with_semaphore(pipeline_name: str):
             async with semaphore:
-                return orchestrator_name, await asyncio.to_thread(
+                return pipeline_name, await asyncio.to_thread(
                     self.run_and_upload,
-                    orchestrator_name=orchestrator_name,
+                    pipeline_name=pipeline_name,
                     time_back=time_back,
                     create_bucket=create_bucket,
                     bucket=bucket,
@@ -154,16 +153,16 @@ class PipelineRunner:
                     secret_key=secret_key,
                 )
         
-        tasks = [run_with_semaphore(name) for name in self.orchestrators]
+        tasks = [run_with_semaphore(name) for name in self.pipelines]
         results = {}
         
         for coro in asyncio.as_completed(tasks):
             try:
-                orchestrator_name, records = await coro
-                results[orchestrator_name] = records
-                print(f"Successfully completed: {orchestrator_name}")
+                pipeline_name, records = await coro
+                results[pipeline_name] = records
+                print(f"Successfully completed: {pipeline_name}")
             except Exception as exc:
-                print(f"Error running orchestrator: {exc}")
+                print(f"Error running pipeline: {exc}")
         
         return results
 

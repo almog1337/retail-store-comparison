@@ -3,16 +3,16 @@ from datetime import timedelta
 from typing import List, TypedDict
 
 
-class FileMetadata(TypedDict):
+class Link(TypedDict):
     """Type definition for file metadata."""
     url: str
     date: str
 
 
-class RetailScraper(ABC):
+class LinkExtractor(ABC):
     """Base interface for scraping retail file links."""
 
     @abstractmethod
-    def fetch(self, time_back: timedelta = None) -> List[FileMetadata]:
+    def fetch(self, time_back: timedelta = None) -> List[Link]:
         """Fetch and filter file metadata by time."""
         pass

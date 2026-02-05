@@ -1,23 +1,21 @@
 from typing import Dict
+from abstractions.scraping_pipeline import ScrapingPipeline
+from shufersal.shufersal_pipeline import shufersalPipeline
+from shufersal.shufersal_link_extractor import ShufersalLinkExtractor
+from shufersal.shufersal_parser import ShufersalParser
+from shufersal.shufersal_downloader import ShufersalDownloader
 
-from orchestrators.retailOrchestrator import RetailOrchestrator
-from orchestrators.shufersalOrchestrator import ShufersalOrchestrator
-from scrapers.shufersalScraper import ShufersalScraper
-from fetchers.shufersalFetcher import ShufersalFetcher
-from parsers.shufersalParser import ShufersalParser
-
-
-def create_orchestrators() -> Dict[str, RetailOrchestrator]:
-    """Create and return all available orchestrators."""
-    shufersal_scraper = ShufersalScraper()
-    shufersal_fetcher = ShufersalFetcher()
+def create_pipelines() -> Dict[str, ScrapingPipeline]:
+    """Create and return all available pipelines."""
+    shufersal_scraper = ShufersalLinkExtractor()
+    shufersal_downloader = ShufersalDownloader()
     shufersal_parser = ShufersalParser()
-    shufersal_orchestrator = ShufersalOrchestrator(
+    shufersal_pipeline = shufersalPipeline(
         shufersal_scraper,
-        shufersal_fetcher,
+        shufersal_downloader,
         shufersal_parser,
     )
 
     return {
-        "shufersal": shufersal_orchestrator,
+        "shufersal": shufersal_pipeline,
     }
