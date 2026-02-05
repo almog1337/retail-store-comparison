@@ -60,7 +60,12 @@ class ShufersalLinkExtractor(LinkExtractor):
         except ValueError:
             return False
 
-    def _fetch_pages_with_time_filter(self, page_count: int, stop_date: Optional[datetime]) -> List[Link]:
+    def _fetch_pages_with_time_filter(
+        self,
+        page_count: int,
+        stop_date: Optional[datetime],
+        max_links: Optional[int] = None,
+    ) -> List[Link]:
         """Fetch files from pages and filter by time window."""
         all_files: List[Link] = []
         print(f"Shufersal: Fetching files from {page_count} pages...")
@@ -77,8 +82,19 @@ class ShufersalLinkExtractor(LinkExtractor):
                 if self._is_file_within_time_window(file_meta, stop_date)
             ]
 
+            if max_links is not None:
+                remaining = max_links - len(all_files)
+                if remaining <= 0:
+                    print("Shufersal: Reached max links limit, stopping")
+                    break
+                recent_files = recent_files[:remaining]
+
             all_files.extend(recent_files)
             print(f"Found {len(recent_files)} files within time window")
+
+            if max_links is not None and len(all_files) >= max_links:
+                print("Shufersal: Reached max links limit, stopping")
+                break
 
             if not recent_files:
                 print("Shufersal: No more recent files found, stopping pagination")
@@ -87,8 +103,10 @@ class ShufersalLinkExtractor(LinkExtractor):
         print(f"Shufersal: Completed. Total files collected: {len(all_files)}")
         return all_files
 
-    def fetch(self, time_back: timedelta = None) -> List[Link]:
+    def fetch(self, time_back: timedelta = None, max_links: Optional[int] = None) -> List[Link]:
         """Fetch and filter file metadata by time."""
         count = self.fetch_page_count()
         stop_date = datetime.now() - time_back if time_back else None
-        return self._fetch_pages_with_time_filter(count, stop_date)
+        if max_links is not None and max_links <= 0:
+            return []
+        return self._fetch_pages_with_time_filter(count, stop_date, max_links=max_links)

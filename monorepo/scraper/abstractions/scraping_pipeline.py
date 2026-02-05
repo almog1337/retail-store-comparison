@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
 from datetime import timedelta
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 class ScrapingPipeline(ABC):
     """Base interface for orchestrating scraping, fetching, and parsing."""
 
     @abstractmethod
-    def extract(self, time_back: timedelta = None) -> List[Dict[str, str]]:
+    def extract(self, time_back: timedelta = None, max_links: Optional[int] = None) -> List[Dict[str, str]]:
         """Fetch files, download, extract, and parse them."""
         raise NotImplementedError

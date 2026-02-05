@@ -4,7 +4,7 @@ Pipeline runner for orchestrating data extraction and upload to MinIO.
 import asyncio
 from datetime import datetime, timedelta
 from typing import Dict, Optional
-
+import pandas as pd
 from uploaders.upload_to_minio import upload_data_to_minio
 
 
@@ -23,6 +23,7 @@ class PipelineRunner:
         self,
         pipeline_name: str,
         time_back: Optional[timedelta] = None,
+        max_links: Optional[int] = None,
         create_bucket: bool = True,
         bucket: Optional[str] = None,
         endpoint: Optional[str] = None,
@@ -35,6 +36,7 @@ class PipelineRunner:
         Args:
             pipeline_name: Name of the pipeline to run
             time_back: How far back to fetch data (default: 2 hours)
+            max_links: Max number of file links to process (optional)
             create_bucket: Whether to create bucket if it doesn't exist
             bucket: MinIO bucket name (optional, uses default if not provided)
             endpoint: MinIO endpoint URL (optional)
@@ -54,28 +56,35 @@ class PipelineRunner:
         pipeline = self.pipelines[pipeline_name]
 
         # Extract data
-        parsed_records = pipeline.extract(time_back=time_back)
+        parsed_records = pipeline.extract(time_back=time_back, max_links=max_links)
 
-        # Generate key with current date
-        ingest_date = datetime.utcnow().date().isoformat()
-        key = f"bronze/{pipeline_name}/ingest_date={ingest_date}/parsed_records.txt"
-
-        # Upload to MinIO
-        upload_data_to_minio(
-            data=parsed_records,
-            key=key,
-            bucket=bucket,
-            endpoint=endpoint,
-            access_key=access_key,
-            secret_key=secret_key,
-            create_bucket=create_bucket,
-        )
+        # Group records by sub_chain_id, store_id, and bikoret_no using pandas
+        if parsed_records:
+            df = pd.DataFrame(parsed_records)
+            grouped = df.groupby(["SubChainId", "StoreId", "BikoretNo"])
+            
+            # Upload grouped records
+            timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            for (sub_chain_id, store_id, bikoret_no), group_df in grouped:
+                key = f"bronze/{pipeline_name}/sub_chain_id={sub_chain_id}/store_id={store_id}/bikoret_no={bikoret_no}/{timestamp}_parsed_records.txt"
+                records = group_df.to_dict("records")
+                
+                upload_data_to_minio(
+                    data=records,
+                    key=key,
+                    bucket=bucket,
+                    endpoint=endpoint,
+                    access_key=access_key,
+                    secret_key=secret_key,
+                    create_bucket=create_bucket,
+                )
 
         return parsed_records
 
     def run_all_and_upload(
         self,
         time_back: Optional[timedelta] = None,
+        max_links: Optional[int] = None,
         create_bucket: bool = True,
         bucket: Optional[str] = None,
         endpoint: Optional[str] = None,
@@ -88,6 +97,7 @@ class PipelineRunner:
 
         Args:
             time_back: How far back to fetch data (default: 2 hours)
+            max_links: Max number of file links to process per pipeline (optional)
             create_bucket: Whether to create bucket if it doesn't exist
             bucket: MinIO bucket name (optional)
             endpoint: MinIO endpoint URL (optional)
@@ -105,6 +115,7 @@ class PipelineRunner:
                 records = self.run_and_upload(
                     pipeline_name=pipeline_name,
                     time_back=time_back,
+                    max_links=max_links,
                     create_bucket=create_bucket,
                     bucket=bucket,
                     endpoint=endpoint,
@@ -118,6 +129,7 @@ class PipelineRunner:
             return asyncio.run(
                 self._run_all_concurrent(
                     time_back=time_back,
+                    max_links=max_links,
                     create_bucket=create_bucket,
                     bucket=bucket,
                     endpoint=endpoint,
@@ -130,6 +142,7 @@ class PipelineRunner:
     async def _run_all_concurrent(
         self,
         time_back: Optional[timedelta],
+        max_links: Optional[int],
         create_bucket: bool,
         bucket: Optional[str],
         endpoint: Optional[str],
@@ -146,6 +159,7 @@ class PipelineRunner:
                     self.run_and_upload,
                     pipeline_name=pipeline_name,
                     time_back=time_back,
+                    max_links=max_links,
                     create_bucket=create_bucket,
                     bucket=bucket,
                     endpoint=endpoint,
