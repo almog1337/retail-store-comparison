@@ -2,10 +2,21 @@
 Pipeline runner for orchestrating data extraction and upload to MinIO.
 """
 import asyncio
+import os
 from datetime import datetime, timedelta
 from typing import Dict, Optional
 import pandas as pd
-from uploaders.upload_to_minio import upload_data_to_minio
+import requests
+
+
+def upload_data_to_uploader(records: list, key: str, create_bucket: bool) -> None:
+    uploader_url = os.environ.get("UPLOADER_URL", "http://localhost:8000/minio")
+    api_key = os.environ.get("UPLOADER_API_KEY", "dev-key")
+    headers = {"Authorization": f"Bearer {api_key}"}
+    payload = {"key": key, "records": records, "create_bucket": create_bucket}
+
+    response = requests.post(uploader_url, json=payload, headers=headers, timeout=120)
+    response.raise_for_status()
 
 
 class PipelineRunner:
@@ -68,16 +79,7 @@ class PipelineRunner:
             for (sub_chain_id, store_id, bikoret_no), group_df in grouped:
                 key = f"bronze/{pipeline_name}/sub_chain_id={sub_chain_id}/store_id={store_id}/bikoret_no={bikoret_no}/{timestamp}_parsed_records.txt"
                 records = group_df.to_dict("records")
-                
-                upload_data_to_minio(
-                    data=records,
-                    key=key,
-                    bucket=bucket,
-                    endpoint=endpoint,
-                    access_key=access_key,
-                    secret_key=secret_key,
-                    create_bucket=create_bucket,
-                )
+                upload_data_to_uploader(records=records, key=key, create_bucket=create_bucket)
 
         return parsed_records
 
