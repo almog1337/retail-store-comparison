@@ -1,25 +1,41 @@
-import { IsArray, IsBoolean, IsOptional, IsString } from 'class-validator';
-import { Transform } from 'class-transformer';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsArray, IsBoolean, IsIn, IsOptional, IsString } from "class-validator";
+import { Transform } from "class-transformer";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ALLOWED_PIPELINE_NAMES } from "../constants/pipeline-names.constant";
 
 export class UploadRecordsDto {
   @ApiProperty({
-    description: 'Object key (path/filename) inside the target bucket',
-    example: 'prices/2026-03-01.json',
+    description:
+      "Pipeline name for organizing data in storage hierarchy. Must be one of the allowed pipeline names.",
+    example: "shufersal",
+    enum: ALLOWED_PIPELINE_NAMES,
   })
   @IsString()
-  key: string;
+  @IsIn(ALLOWED_PIPELINE_NAMES, {
+    message: `pipeline_name must be one of the following values: ${ALLOWED_PIPELINE_NAMES.join(", ")}`,
+  })
+  pipeline_name: string;
 
   @ApiProperty({
-    description: 'Records to upload as JSON array',
-    type: 'array',
-    example: [{ chain: 'store-a', item_code: '12345', price: 9.9 }],
+    description:
+      "Records to upload as JSON array. Each record must include SubChainId, StoreId, and BikoretNo for proper partitioning.",
+    type: "array",
+    example: [
+      {
+        SubChainId: "7290027600007",
+        StoreId: "123",
+        BikoretNo: "456",
+        ItemCode: "7290000000001",
+        ItemName: "Example Item",
+        Price: "9.90",
+      },
+    ],
   })
   @IsArray()
   records: Record<string, unknown>[];
 
   @ApiPropertyOptional({
-    description: 'Whether to create bucket if it does not exist',
+    description: "Whether to create bucket if it does not exist",
     default: true,
   })
   @IsBoolean()
