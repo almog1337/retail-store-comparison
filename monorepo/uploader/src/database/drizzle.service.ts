@@ -12,11 +12,11 @@ export class DrizzleService implements OnModuleInit {
   constructor(private readonly configService: ConfigService) {}
 
   async onModuleInit() {
-    const host = this.configService.get<string>("DB_HOST", "localhost");
-    const port = this.configService.get<number>("DB_PORT", 5432);
-    const user = this.configService.get<string>("DB_USER", "postgres");
-    const password = this.configService.get<string>("DB_PASSWORD", "");
-    const database = this.configService.get<string>("DB_NAME", "retail_store");
+    const host = this.configService.get<string>("database.host", "localhost");
+    const port = this.configService.get<number>("database.port", 5432);
+    const user = this.configService.get<string>("database.user", "postgres");
+    const password = this.configService.get<string>("database.password", "postgres");
+    const database = this.configService.get<string>("database.name", "retail_store");
 
     this.pool = new Pool({
       host,
