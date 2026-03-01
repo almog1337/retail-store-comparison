@@ -26,6 +26,9 @@ uv.lock
 dist/
 build/
 
+# Node.js
+node_modules/
+
 # Editor settings
 .vscode/
 .idea/
