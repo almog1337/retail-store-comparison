@@ -1,18 +1,18 @@
-import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { AppController } from './app.controller';
-import { StorageModule } from './storage/storage.module';
-import { UploadModule } from './upload/upload.module';
-import configuration from './config/configuration';
+import { Module } from "@nestjs/common";
+import { ConfigModule } from "@nestjs/config";
+import { AppController } from "./app.controller";
+import { S3Module } from "./s3/s3.module";
+import { UploadModule } from "./upload/upload.module";
+import configuration from "./config/configuration";
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       load: [configuration],
       isGlobal: true,
-      envFilePath: '.env',
+      envFilePath: ".env",
     }),
-    StorageModule,
+    S3Module,
     UploadModule,
   ],
   controllers: [AppController],

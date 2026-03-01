@@ -1,6 +1,6 @@
-export const STORAGE_BACKEND = 'STORAGE_BACKEND';
+export const S3_BACKEND = "S3_BACKEND";
 
-export interface IStorageBackend {
+export interface IS3Backend {
   uploadRecords(
     records: Record<string, unknown>[],
     key: string,

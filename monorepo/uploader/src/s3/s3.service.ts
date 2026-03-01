@@ -6,22 +6,22 @@ import {
   CreateBucketCommand,
   PutObjectCommand,
 } from "@aws-sdk/client-s3";
-import { IStorageBackend } from "./storage.interface";
+import { IS3Backend } from "./s3.interface";
 
 @Injectable()
-export class MinioStorageService implements IStorageBackend {
-  private readonly logger = new Logger(MinioStorageService.name);
+export class S3Service implements IS3Backend {
+  private readonly logger = new Logger(S3Service.name);
 
   constructor(private readonly configService: ConfigService) {}
 
   private createClient(): S3Client {
     return new S3Client({
-      endpoint: this.configService.get<string>("minio.endpoint"),
-      region: this.configService.get<string>("minio.region"),
+      endpoint: this.configService.get<string>("s3.endpoint"),
+      region: this.configService.get<string>("s3.region"),
       forcePathStyle: true,
       credentials: {
-        accessKeyId: this.configService.get<string>("minio.accessKey"),
-        secretAccessKey: this.configService.get<string>("minio.secretKey"),
+        accessKeyId: this.configService.get<string>("s3.accessKey"),
+        secretAccessKey: this.configService.get<string>("s3.secretKey"),
       },
     });
   }
@@ -56,7 +56,7 @@ export class MinioStorageService implements IStorageBackend {
   ): Promise<void> {
     try {
       const client = this.createClient();
-      const bucket = this.configService.get<string>("minio.bucket");
+      const bucket = this.configService.get<string>("s3.bucket");
 
       if (createBucket) {
         await this.ensureBucket(client, bucket);
@@ -80,11 +80,11 @@ export class MinioStorageService implements IStorageBackend {
 
       // Log the full error for debugging
       this.logger.error(
-        `Failed to upload to MinIO: ${errorName} - ${errorMessage}`,
+        `Failed to upload to S3: ${errorName} - ${errorMessage}`,
         error.stack,
       );
 
-      // Handle specific S3/MinIO error types
+      // Handle specific S3 error types
       if (
         errorName === "InvalidAccessKeyId" ||
         errorName === "SignatureDoesNotMatch" ||
@@ -93,7 +93,7 @@ export class MinioStorageService implements IStorageBackend {
         errorMessage.includes("credentials")
       ) {
         throw new BadGatewayException(
-          "Storage backend authentication failed. Check MinIO credentials configuration.",
+          "Storage backend authentication failed. Check S3 credentials configuration.",
         );
       }
 
@@ -105,13 +105,13 @@ export class MinioStorageService implements IStorageBackend {
         errorMessage.includes("ENOTFOUND")
       ) {
         throw new BadGatewayException(
-          "Cannot connect to storage backend. Check MinIO endpoint configuration.",
+          "Cannot connect to storage backend. Check S3 endpoint configuration.",
         );
       }
 
       if (errorName === "NoSuchBucket" && !createBucket) {
         throw new BadGatewayException(
-          `Storage bucket '${this.configService.get<string>("minio.bucket")}' does not exist. Set create_bucket to true or create the bucket manually.`,
+          `Storage bucket '${this.configService.get<string>("s3.bucket")}' does not exist. Set create_bucket to true or create the bucket manually.`,
         );
       }
 

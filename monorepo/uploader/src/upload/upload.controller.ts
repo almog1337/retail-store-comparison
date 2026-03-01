@@ -12,8 +12,8 @@ import { UploadRecordsDto } from "./dto/upload-records.dto";
 import { UploadService } from "./upload.service";
 import { ApiKeyGuard } from "./guards/api-key.guard";
 
-@Controller("minio")
-@ApiTags("minio")
+@Controller("s3")
+@ApiTags("s3")
 @ApiBearerAuth()
 export class UploadController {
   constructor(private readonly uploadService: UploadService) {}

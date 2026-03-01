@@ -1,6 +1,6 @@
 # Uploader Service
 
-NestJS-based API service for uploading retail price data records to MinIO object storage with automatic key generation and partitioning.
+NestJS-based API service for uploading retail price data records to S3-compatible object storage with automatic key generation and partitioning.
 
 ## Installation
 
@@ -21,11 +21,11 @@ cp .env.example .env
 Required environment variables:
 
 - `UPLOADER_API_KEY` - Bearer token for API authentication
-- `MINIO_BUCKET` - Target bucket name
-- `MINIO_ENDPOINT` - MinIO server URL
-- `MINIO_ACCESS_KEY` - MinIO access credentials
-- `MINIO_SECRET_KEY` - MinIO secret credentials
-- `MINIO_REGION` - AWS region compatibility (default: us-east-1)
+- `S3_BUCKET` - Target bucket name
+- `S3_ENDPOINT` - S3-compatible storage endpoint URL
+- `S3_ACCESS_KEY` - S3 access credentials
+- `S3_SECRET_KEY` - S3 secret credentials
+- `S3_REGION` - AWS region (default: us-east-1)
 
 ## Running the Service
 
@@ -40,7 +40,7 @@ pnpm run start:prod
 
 ## API Endpoints
 
-### POST /minio
+### POST /s3
 
 Upload grouped records to object storage. The service automatically generates a storage key based on the pipeline name and record metadata.
 
@@ -123,7 +123,7 @@ Example error when using an invalid pipeline name:
 - **UploadService** - Orchestrates validation, key generation, and storage
 - **RecordValidator** - Validates record schema and group integrity
 - **KeyGenerator** - Generates storage keys from record metadata
-- **MinioStorageService** - S3-compatible storage backend
+- **S3Service** - S3-compatible storage backend
 
 ## Storage Format
 
@@ -131,7 +131,7 @@ Records are stored as newline-delimited JSON (NDJSON):
 
 - Content-Type: `application/x-ndjson`
 - Format: One JSON object per line
-- Compression: None (can be added via MinIO bucket policies)
+- Compression: None (can be added via S3 bucket policies)
 
 ## Development
 

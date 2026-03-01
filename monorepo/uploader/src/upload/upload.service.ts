@@ -1,13 +1,13 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { IStorageBackend, STORAGE_BACKEND } from "../storage/storage.interface";
+import { IS3Backend, S3_BACKEND } from "../s3/s3.interface";
 import { UploadRecordsDto } from "./dto/upload-records.dto";
-import { RecordValidator } from "../storage/record-validator";
-import { KeyGenerator } from "../storage/key-generator";
+import { RecordValidator } from "../s3/record-validator";
+import { KeyGenerator } from "../s3/key-generator";
 
 @Injectable()
 export class UploadService {
   constructor(
-    @Inject(STORAGE_BACKEND) private readonly storage: IStorageBackend,
+    @Inject(S3_BACKEND) private readonly storage: IS3Backend,
     private readonly recordValidator: RecordValidator,
     private readonly keyGenerator: KeyGenerator,
   ) {}
