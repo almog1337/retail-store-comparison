@@ -2,9 +2,9 @@
 set -euo pipefail
 
 DB_CONTAINER=${DB_CONTAINER:-retail-postgres}
-DB_USER=${DB_USER:-retail}
-DB_NAME=${DB_NAME:-retail}
-SCHEMA_FILE=${SCHEMA_FILE:-schema.sql}
+DB_USER=${DB_USER:-postgres}
+DB_NAME=${DB_NAME:-retail_store}
+SCHEMA_FILE=${SCHEMA_FILE:-../schema.sql}
 
 # Safety: ensure container is running
 if ! docker ps --format '{{.Names}}' | grep -q "^${DB_CONTAINER}$"; then

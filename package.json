@@ -1,0 +1,25 @@
+{
+  "name": "retail-store-comparison",
+  "version": "0.1.0",
+  "description": "Retail store price comparison platform",
+  "private": true,
+  "scripts": {
+    "db:up": "cd databases && docker compose up -d",
+    "db:down": "cd databases && docker compose down",
+    "db:logs": "cd databases && docker compose logs -f",
+    "db:reset": "cd databases/scripts && bash reset_db.sh",
+    "uploader:install": "cd monorepo/uploader && pnpm install",
+    "uploader:build": "cd monorepo/uploader && pnpm run build",
+    "uploader:dev": "cd monorepo/uploader && pnpm run start:dev",
+    "uploader:start": "cd monorepo/uploader && pnpm run start",
+    "scraper:install": "uv sync",
+    "scraper:run": "cd monorepo/scraper && python main.py",
+    "install:all": "pnpm scraper:install && pnpm uploader:install",
+    "dev": "pnpm db:up && pnpm uploader:dev"
+  },
+  "keywords": [
+    "retail",
+    "scraping",
+    "price-comparison"
+  ]
+}

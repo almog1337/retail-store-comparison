@@ -1,7 +1,13 @@
 from datetime import timedelta
+from pathlib import Path
+from dotenv import load_dotenv
 from bootstrapper import create_pipelines
 from pipeline_runner import PipelineRunner
 import urllib3
+
+# Load environment variables from root .env file
+load_dotenv(Path(__file__).parent.parent.parent / ".env")
+
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 def main():
