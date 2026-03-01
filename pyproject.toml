@@ -1,5 +1,5 @@
 [tool.uv.workspace]
-members = ["monorepo/*"]
+members = ["monorepo/scraper"]
 
 [tool.uv]
 dev-dependencies = [
