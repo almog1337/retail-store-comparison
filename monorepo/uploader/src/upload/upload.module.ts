@@ -5,7 +5,7 @@ import { ApiKeyGuard } from "./guards/api-key.guard";
 import { UploadController } from "./upload.controller";
 import { UploadService } from "./upload.service";
 import { RecordMapperFactory } from "./mappers/record-mapper.factory";
-import { ShufersalRecordMapper } from "./mappers/shufersal-record.mapper";
+import { ShufersalRecordMapper } from "./mappers/shufersal/shufersal-record.mapper";
 
 @Module({
   imports: [S3Module, DatabaseModule],

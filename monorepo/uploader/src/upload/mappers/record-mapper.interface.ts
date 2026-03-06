@@ -1,4 +1,4 @@
-import { NewProduct } from "../../database/schema";
+import { ProductWithIdentifierRecord } from "../../database/repositories/data.repository.interface";
 
 /**
  * Interface for pipeline-specific record mappers.
@@ -11,5 +11,7 @@ export interface IRecordMapper {
    * @param records - Raw scraper records with dynamic fields
    * @returns Array of products with whitelisted fields
    */
-  mapToProducts(records: Record<string, unknown>[]): NewProduct[];
+  mapToProductsWithIdentifiers(
+    records: Record<string, unknown>[],
+  ): ProductWithIdentifierRecord[];
 }

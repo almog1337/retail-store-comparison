@@ -34,10 +34,23 @@ export class UploadService {
 
     // Get the appropriate mapper for this pipeline and map records for PostgreSQL
     const mapper = this.recordMapperFactory.getMapper(dto.pipeline_name);
-    const products = mapper.mapToProducts(dto.records);
-    await this.dataRepository.insertProducts(products);
+    const records = mapper.mapToProductsWithIdentifiers(dto.records);
+    await this.dataRepository.insertProductsWithIdentifiers(records);
 
     // Return the generated key so caller knows where data was stored
     return { key };
+  }
+
+  async persistRecordsToDatabase(
+    dto: UploadRecordsDto,
+  ): Promise<{ inserted: number }> {
+    // Reuse validation so DB-only flow enforces the same record integrity rules.
+    this.recordValidator.validateRecords(dto.records);
+
+    const mapper = this.recordMapperFactory.getMapper(dto.pipeline_name);
+    const records = mapper.mapToProductsWithIdentifiers(dto.records);
+    await this.dataRepository.insertProductsWithIdentifiers(records);
+
+    return { inserted: records.length };
   }
 }
