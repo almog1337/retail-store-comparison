@@ -4,9 +4,10 @@ from abstractions.scraping_pipeline import ScrapingPipeline
 from abstractions.link_extractor import LinkExtractor
 from abstractions.file_downloader import FileDownloader
 from abstractions.parser import Parser
+from abstractions.scraping_pipeline import PipelineType
 
 
-class shufersalPipeline(ScrapingPipeline):
+class ShufersalPipeline(ScrapingPipeline):
     """Orchestrates Shufersal scraping, fetching, and parsing."""
 
     def __init__(
@@ -18,6 +19,9 @@ class shufersalPipeline(ScrapingPipeline):
         self.scraper = scraper
         self.fetcher = fetcher
         self.parser = parser
+    
+    def pipeline_type(self) -> PipelineType:
+        return "prices"
 
     def extract(self, time_back: timedelta = None, max_links: Optional[int] = None) -> List[Dict[str, str]]:
         """Fetch, download, extract, and parse all files."""

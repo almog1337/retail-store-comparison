@@ -7,7 +7,7 @@ export class UploadRecordsDto {
   @ApiProperty({
     description:
       "Pipeline name for organizing data in storage hierarchy. Must be one of the allowed pipeline names.",
-    example: "shufersal",
+    example: "shufersal_stores",
     enum: ALLOWED_PIPELINE_NAMES,
   })
   @IsString()
@@ -18,16 +18,22 @@ export class UploadRecordsDto {
 
   @ApiProperty({
     description:
-      "Records to upload as JSON array. Each record must include SubChainId, StoreId, and BikoretNo for proper partitioning.",
+      "Records to upload as JSON array. The required fields depend on pipeline type (prices vs stores).",
     type: "array",
     example: [
       {
-        SubChainId: "7290027600007",
+        ChainId: "7290027600007",
+        SubChainId: "1",
         StoreId: "123",
         BikoretNo: "456",
-        ItemCode: "7290000000001",
-        ItemName: "Example Item",
-        Price: "9.90",
+        StoreType: "city",
+        ChainName: "Shufersal",
+        SubChainName: "Deal",
+        StoreName: "Main Branch",
+        Address: "1 Herzl St",
+        City: "Tel Aviv",
+        ZipCode: "6100001",
+        LastUpdateDate: "2026-03-01T10:00:00Z",
       },
     ],
   })

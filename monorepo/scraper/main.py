@@ -15,9 +15,9 @@ def main():
     runner = PipelineRunner(pipelines)
 
     parsed_records = runner.run_and_upload(
-        pipeline_name="shufersal",
-        time_back=timedelta(hours=6),
-        max_links=6,
+        pipeline_name="shufersal_stores",
+        time_back=timedelta(hours=24),
+        max_links=3,
         create_bucket=True,
     )
 

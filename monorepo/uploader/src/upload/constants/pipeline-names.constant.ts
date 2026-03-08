@@ -8,7 +8,7 @@
  */
 export const ALLOWED_PIPELINE_NAMES = [
   "shufersal",
-  // Add more pipeline names here as they are implemented
+  "shufersal_stores",
 ] as const;
 
 export type PipelineName = (typeof ALLOWED_PIPELINE_NAMES)[number];

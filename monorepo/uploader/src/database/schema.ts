@@ -15,11 +15,18 @@ import {
   unique,
 } from "drizzle-orm/pg-core";
 
-export const chains = pgTable("chains", {
-  id: integer("id").generatedByDefaultAsIdentity().primaryKey(),
-  name: text("name").notNull().unique(),
-  created_at: timestamp("created_at", { withTimezone: true }).defaultNow(),
-});
+export const chains = pgTable(
+  "chains",
+  {
+    id: integer("id").generatedByDefaultAsIdentity().primaryKey(),
+    external_id: text("external_id").notNull(),
+    name: text("name").notNull().unique(),
+    created_at: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  },
+  (table) => ({
+    chains_external_id_unique: unique("chains_external_id_unique").on(table.external_id),
+  }),
+);
 
 export const data_sources = pgTable(
   "data_sources",
@@ -213,3 +220,4 @@ export type ProductIdentifier = typeof product_identifiers.$inferSelect;
 export type NewProductIdentifier = typeof product_identifiers.$inferInsert;
 export type Chain = typeof chains.$inferSelect;
 export type NewChain = typeof chains.$inferInsert;
+export type NewStore = typeof stores.$inferInsert;

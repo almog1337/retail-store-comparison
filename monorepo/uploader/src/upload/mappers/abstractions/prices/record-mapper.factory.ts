@@ -1,5 +1,5 @@
 import { Injectable, BadRequestException } from "@nestjs/common";
-import { ShufersalRecordMapper } from "./shufersal/shufersal-record.mapper";
+import { ShufersalRecordMapper } from "../../shufersal/prices/shufersal-record.mapper";
 import { IRecordMapper } from "./record-mapper.interface";
 
 const PIPELINE_NAMES = {

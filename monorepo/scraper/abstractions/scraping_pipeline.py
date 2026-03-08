@@ -1,9 +1,16 @@
 from abc import ABC, abstractmethod
 from datetime import timedelta
-from typing import Dict, List, Optional
+from typing import Dict, List, Literal, Optional
+
+PipelineType = Literal["prices", "stores"]
 
 class ScrapingPipeline(ABC):
     """Base interface for orchestrating scraping, fetching, and parsing."""
+
+    @abstractmethod
+    def pipeline_type(self) -> PipelineType:
+        """Return a unique identifier for this pipeline."""
+        raise NotImplementedError
 
     @abstractmethod
     def extract(self, time_back: timedelta = None, max_links: Optional[int] = None) -> List[Dict[str, str]]:

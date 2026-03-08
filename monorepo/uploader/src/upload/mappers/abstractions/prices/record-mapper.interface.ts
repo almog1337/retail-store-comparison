@@ -1,4 +1,4 @@
-import { ProductWithIdentifierRecord } from "../../database/repositories/data.repository.interface";
+import { ProductWithIdentifierRecord } from "../../../../database/repositories/data.repository.interface";
 
 /**
  * Interface for pipeline-specific record mappers.

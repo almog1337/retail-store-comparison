@@ -1,5 +1,5 @@
-import { Injectable } from "@nestjs/common";
-import { eq } from "drizzle-orm";
+import { BadRequestException, Injectable } from "@nestjs/common";
+import { eq, inArray } from "drizzle-orm";
 import { DrizzleService } from "../drizzle.service";
 import {
   chains,
@@ -8,10 +8,12 @@ import {
   NewProduct,
   product_identifiers,
   products,
+  stores,
 } from "../schema";
 import {
   IDataRepository,
   ProductWithIdentifierRecord,
+  StoreUpsertRecord,
 } from "./data.repository.interface";
 
 @Injectable()
@@ -51,6 +53,41 @@ export class DrizzleDataRepository implements IDataRepository {
     });
   }
 
+  async insertStores(records: StoreUpsertRecord[]): Promise<void> {
+    if (records.length === 0) {
+      return;
+    }
+
+    const db = this.drizzleService.getDb();
+    const chainExternalIds = [...new Set(records.map((record) => record.chainExternalId))];
+
+    const existingChains = await db
+      .select({ id: chains.id, external_id: chains.external_id })
+      .from(chains)
+      .where(inArray(chains.external_id, chainExternalIds));
+
+    const chainIdByExternalId = new Map(
+      existingChains.map((chain) => [chain.external_id, chain.id]),
+    );
+
+    const missingChainExternalId = chainExternalIds.find(
+      (externalId) => !chainIdByExternalId.has(externalId),
+    );
+
+    if (missingChainExternalId) {
+      throw new BadRequestException(
+        `Chain not found for ChainId=${missingChainExternalId}. Insert the chain before uploading stores.`,
+      );
+    }
+
+    await db.insert(stores).values(
+      records.map((record) => ({
+        ...record.store,
+        chain_id: chainIdByExternalId.get(record.chainExternalId)!,
+      })),
+    );
+  }
+
   async getChains(): Promise<Chain[]> {
     const db = this.drizzleService.getDb();
     return db.select().from(chains);
@@ -64,7 +101,7 @@ export class DrizzleDataRepository implements IDataRepository {
 
   async updateChain(
     id: number,
-    updates: Partial<Pick<NewChain, "name">>,
+    updates: Partial<Pick<NewChain, "external_id" | "name">>,
   ): Promise<Chain | null> {
     if (Object.keys(updates).length === 0) {
       return null;

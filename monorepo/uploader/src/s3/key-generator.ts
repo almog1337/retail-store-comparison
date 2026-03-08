@@ -45,6 +45,26 @@ export class KeyGenerator {
   }
 
   /**
+   * Generates a storage key for store records following the pattern:
+   * bronze/{pipeline_name}/chain_id={id}/{timestamp}_parsed_records.txt
+   */
+  generateStoresKey(params: KeyGenerationParams): string {
+    const { pipelineName, records } = params;
+
+    if (!records || records.length === 0) {
+      throw new Error("Cannot generate key: records array is empty");
+    }
+
+    const chainId = records[0].ChainId;
+    if (chainId === undefined || chainId === null) {
+      throw new Error("Cannot generate key: first record missing required field (ChainId)");
+    }
+
+    const timestamp = this.formatTimestamp(new Date());
+    return `bronze/${pipelineName}/chain_id=${chainId}/${timestamp}_parsed_stores_records.txt`;
+  }
+
+  /**
    * Formats a date to match Python's strftime format: %Y-%m-%d_%H-%M-%S
    * Example: 2026-03-01_14-30-45
    */

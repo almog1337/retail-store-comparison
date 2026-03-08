@@ -1,6 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { ProductWithIdentifierRecord } from "../../../database/repositories/data.repository.interface";
-import { IRecordMapper } from "../record-mapper.interface";
+import { ProductWithIdentifierRecord } from "../../../../database/repositories/data.repository.interface";
+import { IRecordMapper } from "../../abstractions/prices/record-mapper.interface";
 import { ShufersalRecord } from "./shufersal-record.interface";
 
 /**
@@ -45,14 +45,8 @@ export class ShufersalRecordMapper implements IRecordMapper {
       return null;
     }
 
-    return {
-      product: {
-        canonical_name: name,
-      },
-      identifier: {
-        external_code: itemCode,
-      },
-    };
+    //TODO:: fix later
+    return null;
   }
 
   private getStringField(

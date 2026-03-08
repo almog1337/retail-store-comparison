@@ -6,8 +6,10 @@ import {
 } from "../database/repositories/data.repository.interface";
 import { UploadRecordsDto } from "./dto/upload-records.dto";
 import { RecordValidator } from "../s3/record-validator";
+import { StoreRecordValidator } from "../s3/store-record-validator";
 import { KeyGenerator } from "../s3/key-generator";
-import { RecordMapperFactory } from "./mappers/record-mapper.factory";
+import { RecordMapperFactory } from "./mappers/abstractions/prices/record-mapper.factory";
+import { StoreMapperFactory } from "./mappers/abstractions/stores/store-mapper.factory";
 
 @Injectable()
 export class UploadService {
@@ -15,8 +17,10 @@ export class UploadService {
     @Inject(S3_BACKEND) private readonly storage: IS3Backend,
     @Inject(DATA_REPOSITORY) private readonly dataRepository: IDataRepository,
     private readonly recordValidator: RecordValidator,
+    private readonly storeRecordValidator: StoreRecordValidator,
     private readonly keyGenerator: KeyGenerator,
     private readonly recordMapperFactory: RecordMapperFactory,
+    private readonly storeMapperFactory: StoreMapperFactory,
   ) {}
 
   async uploadRecords(dto: UploadRecordsDto): Promise<{ key: string }> {
@@ -52,5 +56,22 @@ export class UploadService {
     await this.dataRepository.insertProductsWithIdentifiers(records);
 
     return { inserted: records.length };
+  }
+
+  async uploadStores(dto: UploadRecordsDto): Promise<{ key: string }> {
+    this.storeRecordValidator.validateRecords(dto.records);
+
+    const key = this.keyGenerator.generateStoresKey({
+      pipelineName: dto.pipeline_name,
+      records: dto.records,
+    });
+
+    await this.storage.uploadRecords(dto.records, key, dto.create_bucket);
+
+    const mapper = this.storeMapperFactory.getMapper(dto.pipeline_name);
+    const stores = mapper.mapToStores(dto.records);
+    await this.dataRepository.insertStores(stores);
+
+    return { key };
   }
 }
