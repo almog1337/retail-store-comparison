@@ -45,19 +45,6 @@ export class UploadService {
     return { key };
   }
 
-  async persistRecordsToDatabase(
-    dto: UploadRecordsDto,
-  ): Promise<{ inserted: number }> {
-    // Reuse validation so DB-only flow enforces the same record integrity rules.
-    this.recordValidator.validateRecords(dto.records);
-
-    const mapper = this.recordMapperFactory.getMapper(dto.pipeline_name);
-    const records = mapper.mapToProductsWithIdentifiers(dto.records);
-    await this.dataRepository.insertProductsWithIdentifiers(records);
-
-    return { inserted: records.length };
-  }
-
   async uploadStores(dto: UploadRecordsDto): Promise<{ key: string }> {
     this.storeRecordValidator.validateRecords(dto.records);
 

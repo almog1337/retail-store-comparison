@@ -5,6 +5,8 @@ export const DATA_REPOSITORY = Symbol("DATA_REPOSITORY");
 export interface ProductWithIdentifierRecord {
   product: NewProduct;
   identifier: Omit<NewProductIdentifier, "product_id">;
+  chainExternalId: string;
+  storeExternalId: string;
 }
 
 export interface StoreUpsertRecord {

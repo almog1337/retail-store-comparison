@@ -13,7 +13,7 @@
     "uploader:dev": "cd monorepo/uploader && pnpm run start:dev",
     "uploader:start": "cd monorepo/uploader && pnpm run start",
     "scraper:install": "uv sync",
-    "scraper:run": "cd monorepo/scraper && python main.py",
+    "scraper:run": "uv run --project monorepo/scraper python monorepo/scraper/main.py",
     "install:all": "pnpm scraper:install && pnpm uploader:install",
     "dev": "pnpm db:up && pnpm uploader:dev"
   },

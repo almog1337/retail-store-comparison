@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
-import { eq, inArray } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { DrizzleService } from "../drizzle.service";
 import {
   chains,
@@ -39,15 +39,73 @@ export class DrizzleDataRepository implements IDataRepository {
     const db = this.drizzleService.getDb();
 
     await db.transaction(async (tx) => {
+      const chainExternalIds = [...new Set(records.map((record) => record.chainExternalId))];
+
+      const existingChains = await tx
+        .select({ id: chains.id, external_id: chains.external_id })
+        .from(chains)
+        .where(inArray(chains.external_id, chainExternalIds));
+
+      const chainIdByExternalId = new Map(
+        existingChains.map((chain) => [chain.external_id, chain.id]),
+      );
+
+      const missingChainExternalId = chainExternalIds.find(
+        (externalId) => !chainIdByExternalId.has(externalId),
+      );
+
+      if (missingChainExternalId) {
+        throw new BadRequestException(
+          `Chain not found for ChainId=${missingChainExternalId}. Insert stores for this chain before uploading prices.`,
+        );
+      }
+
+      const storeExternalIds = [...new Set(records.map((record) => record.storeExternalId))];
+      const chainIds = [...new Set(records.map((record) => chainIdByExternalId.get(record.chainExternalId)!))];
+
+      const matchingStores = await tx
+        .select({
+          id: stores.id,
+          chain_id: stores.chain_id,
+          store_external_id: stores.store_external_id,
+        })
+        .from(stores)
+        .where(
+          and(
+            inArray(stores.chain_id, chainIds),
+            inArray(stores.store_external_id, storeExternalIds),
+          ),
+        );
+
+      const storeIdByChainAndExternal = new Map(
+        matchingStores
+          .filter((store) => store.store_external_id !== null)
+          .map((store) => [`${store.chain_id}:${store.store_external_id}`, store.id]),
+      );
+
       const insertedProducts = await tx
         .insert(products)
         .values(records.map((record) => record.product))
         .returning({ id: products.id });
 
-      const identifierRows = insertedProducts.map((insertedProduct, index) => ({
-        ...records[index].identifier,
-        product_id: insertedProduct.id,
-      }));
+      const identifierRows = insertedProducts.map((insertedProduct, index) => {
+        const chainId = chainIdByExternalId.get(records[index].chainExternalId)!;
+        const storeLookupKey = `${chainId}:${records[index].storeExternalId}`;
+        const storeId = storeIdByChainAndExternal.get(storeLookupKey);
+
+        if (storeId === undefined) {
+          throw new BadRequestException(
+            `Store not found for ChainId=${records[index].chainExternalId} and StoreId=${records[index].storeExternalId}. Upload stores first.`,
+          );
+        }
+
+        return {
+          ...records[index].identifier,
+          product_id: insertedProduct.id,
+          chain_id: chainId,
+          store_id: storeId,
+        };
+      });
 
       await tx.insert(product_identifiers).values(identifierRows);
     });

@@ -14,10 +14,17 @@ def main():
     pipelines = create_pipelines()
     runner = PipelineRunner(pipelines)
 
+    # parsed_records = runner.run_and_upload(
+    #     pipeline_name="shufersal_stores",
+    #     time_back=timedelta(hours=24),
+    #     max_links=1,
+    #     create_bucket=True,
+    # )
+
     parsed_records = runner.run_and_upload(
-        pipeline_name="shufersal_stores",
+        pipeline_name="shufersal",
         time_back=timedelta(hours=24),
-        max_links=3,
+        max_links=6,
         create_bucket=True,
     )
 

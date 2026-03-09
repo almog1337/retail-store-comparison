@@ -25,6 +25,8 @@ def upload_data_to_uploader(self, records: list, pipeline_name: str, create_buck
     uploader_url = os.environ.get("UPLOADER_URL", "http://localhost:8000")
     if pipeline_type == "stores":
         uploader_url = uploader_url + "/upload/stores"
+    elif pipeline_type == "prices":
+        uploader_url = uploader_url + "/upload/prices"
     
     api_key = os.environ.get("UPLOADER_API_KEY", "dev-key")
     headers = {"Authorization": f"Bearer {api_key}"}
@@ -87,7 +89,7 @@ class PipelineRunner:
             if pipeline.pipeline_type() == "prices":
                 grouped_df = df.groupby(["SubChainId", "StoreId", "BikoretNo"], dropna=False)
                 upload_batches: List[list] = [group.to_dict("records") for _, group in grouped_df]
-            if pipeline.pipeline_type() == "stores":
+            elif pipeline.pipeline_type() == "stores":
                 upload_batches = [df.to_dict("records")]
             else:
                 raise ValueError(f"Unsupported pipeline type: {pipeline.pipeline_type()}")

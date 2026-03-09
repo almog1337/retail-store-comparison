@@ -12,7 +12,7 @@ export class ShufersalRecordMapper implements IRecordMapper {
   private readonly logger = new Logger(ShufersalRecordMapper.name);
 
   mapToProductsWithIdentifiers(
-    records: Record<string, ShufersalRecord>[],
+    records: Record<string, unknown>[],
   ): ProductWithIdentifierRecord[] {
     return records
       .map((record) => this.extractProductFields(record))
@@ -22,35 +22,36 @@ export class ShufersalRecordMapper implements IRecordMapper {
   }
 
   private extractProductFields(
-    record: Record<string, ShufersalRecord>,
+    record: Record<string, unknown>,
   ): ProductWithIdentifierRecord | null {
     const name = this.getStringField(record, "ItemName");
     const itemCode = this.getStringField(record, "ItemCode");
-    const chainId = this.getStringField(record, "ChainId");
-    const storeId = this.getStringField(record, "StoreId");
-    //price_events published_at
-    //TODO:: notify me that i need to validate the time format and correctness of parsing
-    const publishedAt = new Date(this.getStringField(record, "PriceUpdateDate"));
-    // product identifier description (the spesific one fo the store)
-    const description = this.getStringField(record, "ManufacturerItemDescription") || "";
-    const isWeighted = this.getStringField(record, "bIsWeighted") === "0" ? false : 
-    this.getStringField(record, "bIsWeighted") === "1";
+    const chainExternalId = this.getStringField(record, "ChainId");
+    const storeExternalId = this.getNumberAsStringField(record, "StoreId");
+    const description = this.getStringField(record, "ManufacturerItemDescription") || name;
 
-    
-
-    if (!name || !itemCode) {
+    if (!name || !itemCode || !chainExternalId || !storeExternalId) {
       this.logger.warn(
-        `[Shufersal] Skipping record missing required fields (ItemName, ItemCode): ${JSON.stringify(record)}`,
+        `[Shufersal] Skipping record missing required fields (ItemName, ItemCode, ChainId, StoreId): ${JSON.stringify(record)}`,
       );
       return null;
     }
 
-    //TODO:: fix later
-    return null;
+    return {
+      product: {
+        canonical_name: name,
+      },
+      identifier: {
+        description,
+        external_code: itemCode,
+      },
+      chainExternalId,
+      storeExternalId,
+    };
   }
 
   private getStringField(
-    record: Record<string, ShufersalRecord>,
+    record: Record<string, unknown>,
     fieldName: keyof ShufersalRecord,
   ): string | null {
     const value = record[fieldName];
@@ -60,4 +61,14 @@ export class ShufersalRecordMapper implements IRecordMapper {
     return null;
   }
 
+  // This is for a text field which represents a number, think of a better name for this method
+  private getNumberAsStringField(
+    record: Record<string, unknown>,
+    fieldName: keyof ShufersalRecord): string | null {
+    const value = record[fieldName];
+    if (typeof value === "string") {
+      return Number(value).toString();
+    }
+    return null;
+  }
 }

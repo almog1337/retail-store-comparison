@@ -143,14 +143,15 @@ export const product_identifiers = pgTable(
       .notNull()
       .references(() => products.id, { onDelete: "cascade" }),
     chain_id: integer("chain_id").references(() => chains.id, { onDelete: "cascade" }),
+    store_id: integer("store_id").references(() => stores.id, { onDelete: "cascade" }),
     description: text("description").notNull(),
     external_code: text("external_code").notNull(),
     code_type: text("code_type"),
   },
   (table) => ({
-    product_identifiers_external_code_chain_id_unique: unique(
-      "product_identifiers_external_code_chain_id_unique",
-    ).on(table.external_code, table.chain_id),
+    product_identifiers_external_code_chain_id_store_id_unique: unique(
+      "product_identifiers_external_code_chain_id_store_id_unique",
+    ).on(table.external_code, table.chain_id, table.store_id),
     product_identifiers_code_type_check: check(
       "product_identifiers_code_type_check",
       sql`${table.code_type} IN ('EAN', 'PLU', 'INTERNAL')`,

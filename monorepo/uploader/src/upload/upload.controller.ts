@@ -21,7 +21,7 @@ export class UploadController {
   @Post('/prices')
   @HttpCode(200)
   @UseGuards(ApiKeyGuard)
-  @ApiOperation({ summary: "Upload records to object storage" })
+  @ApiOperation({ summary: "Upload prices to object storage and PostgreSQL" })
   @ApiBody({ type: UploadRecordsDto })
   @ApiOkResponse({
     description:
@@ -62,29 +62,5 @@ export class UploadController {
   async uploadStores(@Body() dto: UploadRecordsDto) {
     const { key } = await this.uploadService.uploadStores(dto);
     return { status: "uploaded", key, records: dto.records.length };
-  }
-
-  @Post("database")
-  @HttpCode(200)
-  @UseGuards(ApiKeyGuard)
-  @ApiOperation({
-    summary: "Persist records to PostgreSQL (products + product_identifiers)",
-  })
-  @ApiBody({ type: UploadRecordsDto })
-  @ApiOkResponse({
-    description:
-      "Records validated and persisted to products and product_identifiers without uploading to object storage.",
-    schema: {
-      example: {
-        status: "persisted",
-        records: 120,
-      },
-    },
-  })
-  @ApiUnauthorizedResponse({ description: "Missing or invalid Authorization header" })
-  @ApiForbiddenResponse({ description: "Invalid API key" })
-  async persistToDatabase(@Body() dto: UploadRecordsDto) {
-    const { inserted } = await this.uploadService.persistRecordsToDatabase(dto);
-    return { status: "persisted", records: inserted };
   }
 }
