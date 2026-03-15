@@ -2,8 +2,8 @@
 set -euo pipefail
 
 DB_CONTAINER=${DB_CONTAINER:-retail-postgres}
-DB_USER=${DB_USER:-postgres}
-DB_NAME=${DB_NAME:-retail_store}
+DB_USER=${POSTGRES_USER:-postgres}
+DB_NAME=${POSTGRES_DB:-retail_store}
 SCHEMA_FILE=${SCHEMA_FILE:-../schema.sql}
 
 # Safety: ensure container is running

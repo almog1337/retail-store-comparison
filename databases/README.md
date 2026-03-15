@@ -14,14 +14,13 @@ The database automatically initializes with `schema.sql` on first run.
 
 **Connection details:**
 
-- Configured in `.env` file (default: user `retail`, password `retail_password`, database `retail`)
-- Host: `localhost`
-- Port: `5432`
+- Configured in `.env` file via `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`
+- Default values: host `localhost`, port `5432`, user `postgres`, password `postgres`, database `retail_store`
 
 **Connect from terminal:**
 
 ```bash
-docker compose exec db psql -U retail -d retail
+docker compose exec db psql -U postgres -d retail_store
 ```
 
 **Stop the database:**
