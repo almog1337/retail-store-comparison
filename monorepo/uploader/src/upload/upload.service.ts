@@ -1,4 +1,4 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { BadRequestException, Inject, Injectable } from "@nestjs/common";
 import { IS3Backend, S3_BACKEND } from "../s3/s3.interface";
 import {
   IDataRepository,
@@ -36,12 +36,31 @@ export class UploadService {
     // Upload raw records to storage (data lake - keep everything as-is)
     await this.storage.uploadRecords(dto.records, key, dto.create_bucket);
 
-    // TODO: Insert data_sources for prices once price_events are implemented
+    // Insert data_source for tracking this price file
+    if (!dto.source_metadata) {
+      throw new BadRequestException(
+        "source_metadata is required for price uploads (needed for data_sources tracking).",
+      );
+    }
+
+    const chainExternalId = String(dto.records[0]?.ChainId ?? "");
+    const { id: sourceId } = await this.dataRepository.insertDataSource({
+      chainExternalId,
+      fileName: dto.source_metadata.file_name,
+      sourceUrl: dto.source_metadata.source_url,
+      fileType: "prices",
+      publishedAt: dto.source_metadata.published_at
+        ? new Date(dto.source_metadata.published_at)
+        : undefined,
+      scrapedAt: dto.source_metadata.scraped_at
+        ? new Date(dto.source_metadata.scraped_at)
+        : undefined,
+    });
 
     // Get the appropriate mapper for this pipeline and map records for PostgreSQL
     const mapper = this.recordMapperFactory.getMapper(dto.pipeline_name);
     const records = mapper.mapToProductsWithIdentifiers(dto.records);
-    await this.dataRepository.insertProductsWithIdentifiers(records);
+    await this.dataRepository.insertProductsWithPriceData(records, sourceId);
 
     // Return the generated key so caller knows where data was stored
     return { key };

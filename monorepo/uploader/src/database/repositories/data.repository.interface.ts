@@ -11,11 +11,26 @@ export interface DataSourceInsert {
   scrapedAt?: Date;
 }
 
+export interface PriceEventInsert {
+  price: string;
+  unit_price?: string;
+  published_at?: Date;
+}
+
+export interface ProductSpecInsert {
+  is_weighted?: boolean;
+  base_quantity?: string;
+  base_unit?: string;
+  attributes?: Record<string, unknown>;
+}
+
 export interface ProductWithIdentifierRecord {
   product: NewProduct;
   identifier: Omit<NewProductIdentifier, "product_id">;
   chainExternalId: string;
   storeExternalId: string;
+  priceEvent?: PriceEventInsert;
+  productSpec?: ProductSpecInsert;
 }
 
 export interface StoreUpsertRecord {
@@ -27,6 +42,7 @@ export interface StoreUpsertRecord {
 export interface IDataRepository {
   insertProducts(records: NewProduct[]): Promise<void>;
   insertProductsWithIdentifiers(records: ProductWithIdentifierRecord[]): Promise<void>;
+  insertProductsWithPriceData(records: ProductWithIdentifierRecord[], sourceId: number): Promise<void>;
   insertStores(records: StoreUpsertRecord[]): Promise<void>;
   insertDataSource(record: DataSourceInsert): Promise<{ id: number }>;
   getChains(): Promise<Chain[]>;

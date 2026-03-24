@@ -220,3 +220,5 @@ export type Chain = typeof chains.$inferSelect;
 export type NewChain = typeof chains.$inferInsert;
 export type NewStore = typeof stores.$inferInsert;
 export type NewDataSource = typeof data_sources.$inferInsert;
+export type NewPriceEvent = typeof price_events.$inferInsert;
+export type NewProductSpec = typeof product_specs.$inferInsert;

@@ -30,12 +30,16 @@ export class ShufersalRecordMapper implements IRecordMapper {
     const storeExternalId = this.getNumberAsStringField(record, "StoreId");
     const description = this.getStringField(record, "ManufacturerItemDescription") || name;
 
-    if (!name || !itemCode || !chainExternalId || !storeExternalId) {
+    const itemPrice = this.getStringField(record, "ItemPrice");
+
+    if (!name || !itemCode || !chainExternalId || !storeExternalId || !itemPrice) {
       this.logger.warn(
-        `[Shufersal] Skipping record missing required fields (ItemName, ItemCode, ChainId, StoreId): ${JSON.stringify(record)}`,
+        `[Shufersal] Skipping record missing required fields (ItemName, ItemCode, ChainId, StoreId, ItemPrice): ${JSON.stringify(record)}`,
       );
       return null;
     }
+
+    const priceUpdateDate = this.getStringField(record, "PriceUpdateDate");
 
     return {
       product: {
@@ -47,6 +51,17 @@ export class ShufersalRecordMapper implements IRecordMapper {
       },
       chainExternalId,
       storeExternalId,
+      priceEvent: {
+        price: itemPrice,
+        unit_price: this.getStringField(record, "UnitOfMeasurePrice") ?? undefined,
+        published_at: priceUpdateDate ? new Date(priceUpdateDate) : undefined,
+      },
+      productSpec: {
+        is_weighted: this.getStringField(record, "bIsWeighted") === "1",
+        base_quantity: this.getStringField(record, "Quantity") ?? undefined,
+        base_unit: this.getStringField(record, "UnitOfMeasure") ?? undefined,
+        attributes: this.buildSpecAttributes(record),
+      },
     };
   }
 
@@ -59,6 +74,23 @@ export class ShufersalRecordMapper implements IRecordMapper {
       return value;
     }
     return null;
+  }
+
+  private buildSpecAttributes(
+    record: Record<string, unknown>,
+  ): Record<string, unknown> {
+    const attrs: Record<string, unknown> = {};
+    const manufacturerName = this.getStringField(record, "ManufacturerName");
+    if (manufacturerName) attrs.manufacturer_name = manufacturerName;
+    const manufactureCountry = this.getStringField(record, "ManufactureCountry");
+    if (manufactureCountry) attrs.manufacture_country = manufactureCountry;
+    const itemType = this.getStringField(record, "ItemType");
+    if (itemType) attrs.item_type = itemType;
+    const unitQty = this.getStringField(record, "UnitQty");
+    if (unitQty) attrs.unit_qty_description = unitQty;
+    const qtyInPackage = this.getStringField(record, "QtyInPackage");
+    if (qtyInPackage) attrs.qty_in_package = qtyInPackage;
+    return attrs;
   }
 
   // This is for a text field which represents a number, think of a better name for this method
