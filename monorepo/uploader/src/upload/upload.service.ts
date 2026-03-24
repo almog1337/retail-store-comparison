@@ -36,6 +36,23 @@ export class UploadService {
     // Upload raw records to storage (data lake - keep everything as-is)
     await this.storage.uploadRecords(dto.records, key, dto.create_bucket);
 
+    // Track data source if metadata provided
+    if (dto.source_metadata) {
+      const chainExternalId = String(dto.records[0]?.ChainId ?? "");
+      await this.dataRepository.insertDataSource({
+        chainExternalId,
+        fileName: dto.source_metadata.file_name,
+        sourceUrl: dto.source_metadata.source_url,
+        fileType: "prices",
+        publishedAt: dto.source_metadata.published_at
+          ? new Date(dto.source_metadata.published_at)
+          : undefined,
+        scrapedAt: dto.source_metadata.scraped_at
+          ? new Date(dto.source_metadata.scraped_at)
+          : undefined,
+      });
+    }
+
     // Get the appropriate mapper for this pipeline and map records for PostgreSQL
     const mapper = this.recordMapperFactory.getMapper(dto.pipeline_name);
     const records = mapper.mapToProductsWithIdentifiers(dto.records);
@@ -55,9 +72,30 @@ export class UploadService {
 
     await this.storage.uploadRecords(dto.records, key, dto.create_bucket);
 
+    // Track data source if metadata provided
+    let sourceId: number | undefined;
+    if (dto.source_metadata) {
+      const chainExternalId = String(dto.records[0]?.ChainId ?? "");
+      const result = await this.dataRepository.insertDataSource({
+        chainExternalId,
+        fileName: dto.source_metadata.file_name,
+        sourceUrl: dto.source_metadata.source_url,
+        fileType: "stores",
+        publishedAt: dto.source_metadata.published_at
+          ? new Date(dto.source_metadata.published_at)
+          : undefined,
+        scrapedAt: dto.source_metadata.scraped_at
+          ? new Date(dto.source_metadata.scraped_at)
+          : undefined,
+      });
+      sourceId = result.id;
+    }
+
     const mapper = this.storeMapperFactory.getMapper(dto.pipeline_name);
     const stores = mapper.mapToStores(dto.records);
-    await this.dataRepository.insertStores(stores);
+    await this.dataRepository.insertStores(
+      stores.map((s) => ({ ...s, sourceId })),
+    );
 
     return { key };
   }

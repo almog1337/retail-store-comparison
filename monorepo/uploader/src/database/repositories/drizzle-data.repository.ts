@@ -4,6 +4,7 @@ import { DrizzleService } from "../drizzle.service";
 import {
   chains,
   Chain,
+  data_sources,
   NewChain,
   NewProduct,
   product_identifiers,
@@ -11,6 +12,7 @@ import {
   stores,
 } from "../schema";
 import {
+  DataSourceInsert,
   IDataRepository,
   ProductWithIdentifierRecord,
   StoreUpsertRecord,
@@ -142,7 +144,8 @@ export class DrizzleDataRepository implements IDataRepository {
       records.map((record) => ({
         ...record.store,
         chain_id: chainIdByExternalId.get(record.chainExternalId)!,
-      })),
+        source_id: record.sourceId,
+      } as typeof stores.$inferInsert)),
     );
   }
 
@@ -182,5 +185,34 @@ export class DrizzleDataRepository implements IDataRepository {
     });
 
     return deletedRows.length > 0;
+  }
+
+  async insertDataSource(record: DataSourceInsert): Promise<{ id: number }> {
+    const db = this.drizzleService.getDb();
+
+    const [existingChain] = await db
+      .select({ id: chains.id })
+      .from(chains)
+      .where(eq(chains.external_id, record.chainExternalId));
+
+    if (!existingChain) {
+      throw new BadRequestException(
+        `Chain not found for ChainId=${record.chainExternalId}. Insert the chain before tracking data sources.`,
+      );
+    }
+
+    const [inserted] = await db
+      .insert(data_sources)
+      .values({
+        chain_id: existingChain.id,
+        file_name: record.fileName,
+        source_url: record.sourceUrl,
+        file_type: record.fileType,
+        published_at: record.publishedAt,
+        scraped_at: record.scrapedAt,
+      } as typeof data_sources.$inferInsert)
+      .returning({ id: data_sources.id });
+
+    return { id: inserted.id };
   }
 }

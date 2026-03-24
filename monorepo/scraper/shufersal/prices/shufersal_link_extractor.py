@@ -30,7 +30,8 @@ class ShufersalLinkExtractor(LinkExtractor):
                         link = link_tag['href']
                         if '.gz' in link:
                             date = tds[1].text.strip()
-                            file_data.append({'url': link, 'date': date})
+                            file_name = tds[6].text.strip()
+                            file_data.append({'url': link, 'date': date, 'file_name': file_name})
 
             return file_data if file_data else None
         except requests.RequestException as e:

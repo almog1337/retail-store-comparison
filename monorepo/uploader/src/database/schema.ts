@@ -39,7 +39,9 @@ export const data_sources = pgTable(
     published_at: timestamp("published_at", { withTimezone: true }),
     scraped_at: timestamp("scraped_at", { withTimezone: true }).defaultNow(),
   },
-  () => ({}),
+  (table) => ({
+    idx_data_sources_chain: index("idx_data_sources_chain").on(table.chain_id),
+  }),
 );
 
 export const stores = pgTable(
@@ -49,6 +51,7 @@ export const stores = pgTable(
     chain_id: integer("chain_id")
       .notNull()
       .references(() => chains.id, { onDelete: "cascade" }),
+    source_id: integer("source_id").references(() => data_sources.id, { onDelete: "set null" }),
     store_external_id: text("store_external_id"),
     name: text("name"),
     city: text("city"),
@@ -216,3 +219,4 @@ export type NewProductIdentifier = typeof product_identifiers.$inferInsert;
 export type Chain = typeof chains.$inferSelect;
 export type NewChain = typeof chains.$inferInsert;
 export type NewStore = typeof stores.$inferInsert;
+export type NewDataSource = typeof data_sources.$inferInsert;

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Tuple
 from abstractions.link_extractor import Link
 
 
@@ -11,14 +11,14 @@ class FileDownloader(ABC):
         """Download and extract a single file."""
         pass
 
-    def download_and_extract_all(self, files: List[Link]) -> List[str]:
-        """Download and extract multiple files sequentially."""
-        extracted: List[str] = []
+    def download_and_extract_all(self, files: List[Link]) -> List[Tuple[Link, str]]:
+        """Download and extract multiple files sequentially, preserving link metadata."""
+        extracted: List[Tuple[Link, str]] = []
         for file_meta in files:
             try:
                 text = self.download_and_extract(file_meta)
                 if text:
-                    extracted.append(text)
+                    extracted.append((file_meta, text))
             except Exception:
                 continue
         return extracted

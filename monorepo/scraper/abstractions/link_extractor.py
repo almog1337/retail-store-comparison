@@ -7,6 +7,7 @@ class Link(TypedDict):
     """Type definition for file metadata."""
     url: str
     date: str
+    file_name: str
 
 
 class LinkExtractor(ABC):
