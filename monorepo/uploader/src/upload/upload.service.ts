@@ -36,22 +36,7 @@ export class UploadService {
     // Upload raw records to storage (data lake - keep everything as-is)
     await this.storage.uploadRecords(dto.records, key, dto.create_bucket);
 
-    // Track data source if metadata provided
-    if (dto.source_metadata) {
-      const chainExternalId = String(dto.records[0]?.ChainId ?? "");
-      await this.dataRepository.insertDataSource({
-        chainExternalId,
-        fileName: dto.source_metadata.file_name,
-        sourceUrl: dto.source_metadata.source_url,
-        fileType: "prices",
-        publishedAt: dto.source_metadata.published_at
-          ? new Date(dto.source_metadata.published_at)
-          : undefined,
-        scrapedAt: dto.source_metadata.scraped_at
-          ? new Date(dto.source_metadata.scraped_at)
-          : undefined,
-      });
-    }
+    // TODO: Insert data_sources for prices once price_events are implemented
 
     // Get the appropriate mapper for this pipeline and map records for PostgreSQL
     const mapper = this.recordMapperFactory.getMapper(dto.pipeline_name);
