@@ -37,6 +37,112 @@ services:
       timeout: 5s
       retries: 5
 
+  # ---------------------------------------------------------------------------
+  # Apache Superset
+  # ---------------------------------------------------------------------------
+  superset-redis:
+    image: redis:7
+    container_name: superset-redis
+    restart: unless-stopped
+    volumes:
+      - superset_redis:/data
+
+  superset-init:
+    build:
+      context: ./superset
+      dockerfile: Dockerfile
+    image: retail-superset:local
+    container_name: superset-init
+    env_file:
+      - ../.env
+    environment:
+      DATABASE_HOST: db
+      REDIS_HOST: superset-redis
+      PYTHONPATH: /app/pythonpath:/app/superset_config
+    volumes:
+      - superset_home:/app/superset_home
+      - ./superset/superset_config.py:/app/superset_config/superset_config.py:ro
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        superset db upgrade
+        superset fab create-admin \
+          --username "$${SUPERSET_ADMIN_USERNAME:-admin}" \
+          --firstname Admin \
+          --lastname User \
+          --email "$${SUPERSET_ADMIN_EMAIL:-admin@superset.local}" \
+          --password "$${SUPERSET_ADMIN_PASSWORD:-admin}" || true
+        superset init
+    depends_on:
+      db:
+        condition: service_healthy
+      superset-redis:
+        condition: service_started
+
+  superset:
+    image: retail-superset:local
+    container_name: superset
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    environment:
+      DATABASE_HOST: db
+      REDIS_HOST: superset-redis
+      PYTHONPATH: /app/pythonpath:/app/superset_config
+    ports:
+      - "8088:8088"
+    volumes:
+      - superset_home:/app/superset_home
+      - ./superset/superset_config.py:/app/superset_config/superset_config.py:ro
+    depends_on:
+      superset-init:
+        condition: service_completed_successfully
+
+  superset-worker:
+    image: retail-superset:local
+    container_name: superset-worker
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    environment:
+      DATABASE_HOST: db
+      REDIS_HOST: superset-redis
+      PYTHONPATH: /app/pythonpath:/app/superset_config
+    command: ["celery", "--app=superset.tasks.celery_app:app", "worker", "--pool=prefork", "-O", "fair", "-c", "2"]
+    volumes:
+      - superset_home:/app/superset_home
+      - ./superset/superset_config.py:/app/superset_config/superset_config.py:ro
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A superset.tasks.celery_app:app inspect ping -d celery@$$HOSTNAME"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    depends_on:
+      superset-init:
+        condition: service_completed_successfully
+
+  superset-worker-beat:
+    image: retail-superset:local
+    container_name: superset-worker-beat
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    environment:
+      DATABASE_HOST: db
+      REDIS_HOST: superset-redis
+      PYTHONPATH: /app/pythonpath:/app/superset_config
+    command: ["celery", "--app=superset.tasks.celery_app:app", "beat", "--pidfile", "/tmp/celerybeat.pid"]
+    volumes:
+      - superset_home:/app/superset_home
+      - ./superset/superset_config.py:/app/superset_config/superset_config.py:ro
+    healthcheck:
+      disable: true
+    depends_on:
+      superset-init:
+        condition: service_completed_successfully
+
 volumes:
   pgroot:
   minio_data:
+  superset_redis:
+  superset_home:
