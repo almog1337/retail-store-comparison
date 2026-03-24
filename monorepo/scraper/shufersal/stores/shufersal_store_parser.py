@@ -26,7 +26,12 @@ class ShufersalStoresParser(Parser):
         return tag
 
     def _normalized_key(self, raw_key: str) -> str:
-        return self.KEY_MAP.get(raw_key.upper(), raw_key)
+        normalized = self.KEY_MAP.get(raw_key.upper())
+        if normalized is None:
+            # Temporary stdout logging; can be swapped for a structured logger later.
+            print(f"[ShufersalStoresParser] Missing key mapping for '{raw_key}', using original key.")
+            return raw_key
+        return normalized
 
     def _find_child(self, node: ET.Element, child_name: str) -> Optional[ET.Element]:
         target = child_name.upper()
