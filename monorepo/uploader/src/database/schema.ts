@@ -34,18 +34,12 @@ export const data_sources = pgTable(
     id: integer("id").generatedByDefaultAsIdentity().primaryKey(),
     chain_id: integer("chain_id").references(() => chains.id, { onDelete: "cascade" }),
     file_name: text("file_name").notNull(),
-    file_checksum: text("file_checksum"),
     source_url: text("source_url"),
     file_type: text("file_type"),
-    total_items: integer("total_items"),
-    status: text("status").default("pending"),
     published_at: timestamp("published_at", { withTimezone: true }),
     scraped_at: timestamp("scraped_at", { withTimezone: true }).defaultNow(),
   },
-  (table) => ({
-    file_checksum_unique: unique("data_sources_file_checksum_unique").on(table.file_checksum),
-    idx_data_sources_checksum: index("idx_data_sources_checksum").on(table.file_checksum),
-  }),
+  () => ({}),
 );
 
 export const stores = pgTable(
