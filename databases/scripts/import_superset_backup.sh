@@ -48,13 +48,14 @@ echo "Stopping Superset app/workers during restore..."
 docker compose -f "${COMPOSE_FILE}" stop superset superset-worker superset-worker-beat || true
 
 DB_NAME=$(docker exec "${DB_CONTAINER}" sh -lc 'printf "%s" "${SUPERSET_DB:-superset}"')
+DB_USER=$(docker exec "${DB_CONTAINER}" sh -lc 'printf "%s" "${POSTGRES_USER:-postgres}"')
 
 echo "Recreating Superset metadata database (${DB_NAME})..."
-docker exec -i "${DB_CONTAINER}" sh -lc 'dropdb -U "${POSTGRES_USER}" --if-exists "${SUPERSET_DB:-superset}"'
-docker exec -i "${DB_CONTAINER}" sh -lc 'createdb -U "${POSTGRES_USER}" "${SUPERSET_DB:-superset}"'
+docker exec -i "${DB_CONTAINER}" dropdb -U "${DB_USER}" --if-exists "${DB_NAME}"
+docker exec -i "${DB_CONTAINER}" createdb -U "${DB_USER}" "${DB_NAME}"
 
 echo "Restoring metadata dump..."
-docker exec -i "${DB_CONTAINER}" sh -lc 'pg_restore -U "${POSTGRES_USER}" -d "${SUPERSET_DB:-superset}" --clean --if-exists --no-owner --no-privileges -' < "${DB_DUMP_FILE}"
+docker exec -i "${DB_CONTAINER}" pg_restore -U "${DB_USER}" -d "${DB_NAME}" --clean --if-exists --no-owner --no-privileges < "${DB_DUMP_FILE}"
 
 echo "Starting Superset container for superset_home restore..."
 docker compose -f "${COMPOSE_FILE}" up -d superset
@@ -65,8 +66,8 @@ if ! docker ps --format '{{.Names}}' | grep -q "^${SUPERSET_CONTAINER}$"; then
 fi
 
 echo "Restoring /app/superset_home..."
-docker cp "${HOME_ARCHIVE_FILE}" "${SUPERSET_CONTAINER}:/tmp/superset_home.tgz"
-docker exec "${SUPERSET_CONTAINER}" sh -lc 'mkdir -p /app/superset_home && rm -rf /app/superset_home/* && tar -C /app -xzf /tmp/superset_home.tgz && rm -f /tmp/superset_home.tgz'
+docker cp "${HOME_ARCHIVE_FILE}" "${SUPERSET_CONTAINER}:/app/superset_home.restore.tgz"
+docker exec -u root "${SUPERSET_CONTAINER}" sh -lc 'mkdir -p /app/superset_home && rm -rf /app/superset_home/* && tar -C /app -xzf /app/superset_home.restore.tgz && rm -f /app/superset_home.restore.tgz'
 
 echo "Starting Superset workers..."
 docker compose -f "${COMPOSE_FILE}" up -d superset-worker superset-worker-beat
