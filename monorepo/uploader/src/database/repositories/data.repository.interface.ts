@@ -21,7 +21,7 @@ export interface ProductSpecInsert {
   is_weighted?: boolean;
   base_quantity?: string;
   base_unit?: string;
-  attributes?: Record<string, unknown>;
+  attributes?: Record<string, unknown[]>;
 }
 
 export interface ProductWithIdentifierRecord {

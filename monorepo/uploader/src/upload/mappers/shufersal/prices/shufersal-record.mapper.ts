@@ -78,18 +78,18 @@ export class ShufersalRecordMapper implements IRecordMapper {
 
   private buildSpecAttributes(
     record: Record<string, unknown>,
-  ): Record<string, unknown> {
-    const attrs: Record<string, unknown> = {};
+  ): Record<string, unknown[]> {
+    const attrs: Record<string, unknown[]> = {};
     const manufacturerName = this.getStringField(record, "ManufacturerName");
-    if (manufacturerName) attrs.manufacturer_name = manufacturerName;
+    if (manufacturerName) attrs.manufacturer_name = [manufacturerName];
     const manufactureCountry = this.getStringField(record, "ManufactureCountry");
-    if (manufactureCountry) attrs.manufacture_country = manufactureCountry;
+    if (manufactureCountry) attrs.manufacture_country = [manufactureCountry];
     const itemType = this.getStringField(record, "ItemType");
-    if (itemType) attrs.item_type = itemType;
+    if (itemType) attrs.item_type = [itemType];
     const unitQty = this.getStringField(record, "UnitQty");
-    if (unitQty) attrs.unit_qty_description = unitQty;
+    if (unitQty) attrs.unit_qty_description = [unitQty];
     const qtyInPackage = this.getStringField(record, "QtyInPackage");
-    if (qtyInPackage) attrs.qty_in_package = qtyInPackage;
+    if (qtyInPackage) attrs.qty_in_package = [qtyInPackage];
     return attrs;
   }
 
