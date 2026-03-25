@@ -325,13 +325,28 @@ export class DrizzleDataRepository implements IDataRepository {
       );
     }
 
-    const insertedStores = await db.insert(stores).values(
-      records.map((record) => ({
-        ...record.store,
-        chain_id: chainIdByExternalId.get(record.chainExternalId)!,
-        source_id: record.sourceId,
-      } as typeof stores.$inferInsert)),
-    );
+    const insertedStores = await db
+      .insert(stores)
+      .values(
+        records.map((record) => ({
+          ...record.store,
+          chain_id: chainIdByExternalId.get(record.chainExternalId)!,
+          source_id: record.sourceId,
+        } as typeof stores.$inferInsert)),
+      )
+      .onConflictDoUpdate({
+        target: [stores.chain_id, stores.store_external_id],
+        set: {
+          source_id: sql`excluded.source_id`,
+          name: sql`excluded.name`,
+          city: sql`excluded.city`,
+          address: sql`excluded.address`,
+          latitude: sql`excluded.latitude`,
+          longitude: sql`excluded.longitude`,
+          store_type: sql`excluded.store_type`,
+          is_active: sql`excluded.is_active`,
+        } as Record<string, unknown>,
+      });
     console.log(`Inserted ${insertedStores.rowCount} stores (chainExternalIds: ${chainExternalIds.join(", ")})`);
   }
 

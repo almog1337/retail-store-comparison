@@ -52,7 +52,7 @@ export const stores = pgTable(
       .notNull()
       .references(() => chains.id, { onDelete: "cascade" }),
     source_id: integer("source_id").references(() => data_sources.id, { onDelete: "set null" }),
-    store_external_id: text("store_external_id"),
+    store_external_id: text("store_external_id").notNull(),
     name: text("name"),
     city: text("city"),
     address: text("address"),
@@ -63,6 +63,9 @@ export const stores = pgTable(
     created_at: timestamp("created_at", { withTimezone: true }).defaultNow(),
   },
   (table) => ({
+    stores_chain_id_store_external_id_unique: unique(
+      "stores_chain_id_store_external_id_unique",
+    ).on(table.chain_id, table.store_external_id),
     idx_stores_location: index("idx_stores_location").on(table.latitude, table.longitude),
   }),
 );

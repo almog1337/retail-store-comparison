@@ -1,4 +1,4 @@
-import { Chain, NewChain, NewProduct, NewProductIdentifier, NewStore } from "../schema";
+import { Chain, NewChain, NewProduct, NewProductIdentifier } from "../schema";
 
 export const DATA_REPOSITORY = Symbol("DATA_REPOSITORY");
 
@@ -36,7 +36,16 @@ export interface ProductWithIdentifierRecord {
 export interface StoreUpsertRecord {
   chainExternalId: string;
   sourceId?: number;
-  store: Omit<NewStore, "id" | "chain_id" | "source_id" | "created_at">;
+  store: {
+    store_external_id: string;
+    name?: string | null;
+    city?: string | null;
+    address?: string | null;
+    latitude?: string | number | null;
+    longitude?: string | number | null;
+    store_type?: string | null;
+    is_active?: boolean | null;
+  };
 }
 
 export interface IDataRepository {

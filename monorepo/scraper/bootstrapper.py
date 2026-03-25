@@ -11,9 +11,8 @@ from shufersal.stores.shufersal_store_parser import ShufersalStoresParser
 from shufersal.stores.shufersal_store_downloader import ShufersalStoresDownloader
 
 from cerberus.cerberus_session import CerberusSession
-from cerberus.cerberus_link_extractor import CerberusLinkExtractor
-from cerberus.cerberus_downloader import CerberusDownloader
-from cerberus.cerberus_pipeline import CerberusPipeline
+from cerberus.rami_levy.prices.rami_levy_pipeline import RamiLevyPipeline
+from cerberus.rami_levy.stores.rami_levy_store_pipeline import RamiLevyStoresPipeline
 
 
 def create_pipelines() -> Dict[str, ScrapingPipeline]:
@@ -38,19 +37,9 @@ def create_pipelines() -> Dict[str, ScrapingPipeline]:
         password="",
     )
 
-    rami_levy_pipeline = CerberusPipeline(
-        scraper=CerberusLinkExtractor(rami_levy_session, r"Price.*\.gz"),
-        fetcher=CerberusDownloader(rami_levy_session),
-        parser=ShufersalParser(),
-        type="prices",
-    )
+    rami_levy_pipeline = RamiLevyPipeline(rami_levy_session)
 
-    rami_levy_stores_pipeline = CerberusPipeline(
-        scraper=CerberusLinkExtractor(rami_levy_session, r"Stores.*\.xml"),
-        fetcher=CerberusDownloader(rami_levy_session),
-        parser=ShufersalStoresParser(),
-        type="stores",
-    )
+    rami_levy_stores_pipeline = RamiLevyStoresPipeline(rami_levy_session)
 
     return {
         "shufersal": shufersal_pipeline,

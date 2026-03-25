@@ -16,9 +16,7 @@ export class ShufersalRecordMapper implements IRecordMapper {
   ): ProductWithIdentifierRecord[] {
     return records
       .map((record) => this.extractProductFields(record))
-      .filter(
-        (product): product is ProductWithIdentifierRecord => product !== null,
-      );
+      .filter((product): product is ProductWithIdentifierRecord => product !== null);
   }
 
   private extractProductFields(
@@ -28,7 +26,8 @@ export class ShufersalRecordMapper implements IRecordMapper {
     const itemCode = this.getStringField(record, "ItemCode");
     const chainExternalId = this.getStringField(record, "ChainId");
     const storeExternalId = this.getNumberAsStringField(record, "StoreId");
-    const description = this.getStringField(record, "ManufacturerItemDescription") || name;
+    const description =
+      this.getStringField(record, "ManufacturerItemDescription") || name;
 
     const itemPrice = this.getStringField(record, "ItemPrice");
 
@@ -96,7 +95,8 @@ export class ShufersalRecordMapper implements IRecordMapper {
   // This is for a text field which represents a number, think of a better name for this method
   private getNumberAsStringField(
     record: Record<string, unknown>,
-    fieldName: keyof ShufersalRecord): string | null {
+    fieldName: keyof ShufersalRecord,
+  ): string | null {
     const value = record[fieldName];
     if (typeof value === "string") {
       return Number(value).toString();

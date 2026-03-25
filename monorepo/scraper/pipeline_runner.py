@@ -77,7 +77,7 @@ class PipelineRunner:
 
         Args:
             pipeline_name: Name of the pipeline to run
-            time_back: How far back to fetch data (default: 2 hours)
+            time_back: How far back to fetch data (default: 120 days)
             max_links: Max number of file links to process (optional)
             create_bucket: Whether to create bucket if it doesn't exist
             batch_size: Number of records to send per uploader request
@@ -93,7 +93,7 @@ class PipelineRunner:
         if batch_size <= 0:
             raise ValueError("batch_size must be greater than 0")
 
-        time_back = time_back or timedelta(hours=2)
+        time_back = time_back or timedelta(days=120)
         pipeline = self.pipelines[pipeline_name]
 
         # Extract data — returns List[ExtractedFile], one per source file

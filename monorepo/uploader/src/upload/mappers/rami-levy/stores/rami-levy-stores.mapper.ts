@@ -13,11 +13,9 @@ export class RamiLevyStoreMapper implements IStoreMapper {
       .filter((store): store is StoreUpsertRecord => store !== null);
   }
 
-  private extractStoreFields(
-    record: Record<string, unknown>,
-  ): StoreUpsertRecord | null {
+  private extractStoreFields(record: Record<string, unknown>): StoreUpsertRecord | null {
     const chainExternalId = this.getStringField(record, "ChainId");
-    const storeExternalId = this.getStringField(record, "StoreId");
+    const storeExternalId = this.getNumberAsStringField(record, "StoreId");
     const name = this.getStringField(record, "StoreName");
     const city = this.getStringField(record, "City");
     const address = this.getStringField(record, "Address");
@@ -53,6 +51,23 @@ export class RamiLevyStoreMapper implements IStoreMapper {
     if (typeof value === "number") {
       return String(value);
     }
+    return null;
+  }
+
+  private getNumberAsStringField(
+    record: Record<string, unknown>,
+    fieldName: keyof RamiLevyStore,
+  ): string | null {
+    const value = record[fieldName];
+
+    if (typeof value === "string") {
+      return Number(value).toString();
+    }
+
+    if (typeof value === "number") {
+      return value.toString();
+    }
+
     return null;
   }
 }

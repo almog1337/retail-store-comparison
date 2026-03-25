@@ -30,6 +30,11 @@ def main():
 
     parsed_records = runner.run_and_upload(
         pipeline_name="rami_levy_stores",
+        create_bucket=True,
+    )
+
+    parsed_records = runner.run_and_upload(
+        pipeline_name="rami_levy",
         time_back=timedelta(hours=24),
         max_links=1,
         create_bucket=True,
