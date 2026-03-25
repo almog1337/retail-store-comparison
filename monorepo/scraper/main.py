@@ -21,10 +21,17 @@ def main():
     #     create_bucket=True,
     # )
 
+    # parsed_records = runner.run_and_upload(
+    #     pipeline_name="shufersal",
+    #     time_back=timedelta(hours=24),
+    #     max_links=6,
+    #     create_bucket=True,
+    # )
+
     parsed_records = runner.run_and_upload(
-        pipeline_name="shufersal",
+        pipeline_name="rami_levy_stores",
         time_back=timedelta(hours=24),
-        max_links=6,
+        max_links=1,
         create_bucket=True,
     )
 

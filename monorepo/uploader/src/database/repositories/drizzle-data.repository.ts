@@ -325,13 +325,14 @@ export class DrizzleDataRepository implements IDataRepository {
       );
     }
 
-    await db.insert(stores).values(
+    const insertedStores = await db.insert(stores).values(
       records.map((record) => ({
         ...record.store,
         chain_id: chainIdByExternalId.get(record.chainExternalId)!,
         source_id: record.sourceId,
       } as typeof stores.$inferInsert)),
     );
+    console.log(`Inserted ${insertedStores.rowCount} stores (chainExternalIds: ${chainExternalIds.join(", ")})`);
   }
 
   async getChains(): Promise<Chain[]> {

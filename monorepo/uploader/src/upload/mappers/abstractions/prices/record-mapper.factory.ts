@@ -1,9 +1,11 @@
 import { Injectable, BadRequestException } from "@nestjs/common";
 import { ShufersalRecordMapper } from "../../shufersal/prices/shufersal-record.mapper";
+import { RamiLevyRecordMapper } from "../../rami-levy/prices/rami-levy-record.mapper";
 import { IRecordMapper } from "./record-mapper.interface";
 
 const PIPELINE_NAMES = {
   SHUFERSAL: "shufersal",
+  RAMI_LEVY: "rami_levy",
 } as const;
 
 /**
@@ -14,7 +16,10 @@ const PIPELINE_NAMES = {
  */
 @Injectable()
 export class RecordMapperFactory {
-  constructor(private readonly shufersalMapper: ShufersalRecordMapper) {}
+  constructor(
+    private readonly shufersalMapper: ShufersalRecordMapper,
+    private readonly ramiLevyMapper: RamiLevyRecordMapper,
+  ) {}
 
   /**
    * Get the appropriate mapper for the given pipeline.
@@ -26,6 +31,8 @@ export class RecordMapperFactory {
     switch (pipelineName.toLowerCase()) {
       case PIPELINE_NAMES.SHUFERSAL:
         return this.shufersalMapper;
+      case PIPELINE_NAMES.RAMI_LEVY:
+        return this.ramiLevyMapper;
       default:
         throw new BadRequestException(
           `No mapper found for pipeline: ${pipelineName}. Supported pipelines: ${Object.values(PIPELINE_NAMES).join(", ")}`,

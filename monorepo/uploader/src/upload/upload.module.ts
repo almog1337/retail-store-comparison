@@ -6,8 +6,10 @@ import { UploadController } from "./upload.controller";
 import { UploadService } from "./upload.service";
 import { RecordMapperFactory } from "./mappers/abstractions/prices/record-mapper.factory";
 import { ShufersalRecordMapper } from "./mappers/shufersal/prices/shufersal-record.mapper";
+import { RamiLevyRecordMapper } from "./mappers/rami-levy/prices/rami-levy-record.mapper";
 import { StoreMapperFactory } from "./mappers/abstractions/stores/store-mapper.factory";
 import { ShufersalStoreMapper } from "./mappers/shufersal/stores/shufersal-stores.mapper";
+import { RamiLevyStoreMapper } from "./mappers/rami-levy/stores/rami-levy-stores.mapper";
 
 @Module({
   imports: [S3Module, DatabaseModule],
@@ -18,6 +20,8 @@ import { ShufersalStoreMapper } from "./mappers/shufersal/stores/shufersal-store
     StoreMapperFactory,
     ShufersalRecordMapper,
     ShufersalStoreMapper,
+    RamiLevyRecordMapper,
+    RamiLevyStoreMapper,
     ApiKeyGuard,
   ],
 })

@@ -70,14 +70,41 @@ class ShufersalStoresParser(Parser):
         chain_node = self._find_child(values_node, "CHAINID")
         if chain_node is not None:
             header["ChainId"] = self._text(chain_node)
+        chain_name_node = self._find_child(values_node, "CHAINNAME")
+        if chain_name_node is not None:
+            header["ChainName"] = self._text(chain_name_node)
         last_update_node = self._find_child(values_node, "LASTUPDATEDATE")
         if last_update_node is not None:
             header["LastUpdateDate"] = self._text(last_update_node)
 
         stores_node = self._find_child(values_node, "STORES")
-        if stores_node is None:
+        if stores_node is not None:
+            return self._parse_stores(stores_node, header)
+
+        # Cerberus format: Root > SubChains > SubChain > Stores > Store
+        subchains_node = self._find_child(values_node, "SUBCHAINS")
+        if subchains_node is None:
             return []
 
+        records: List[Dict[str, str]] = []
+        for subchain in self._find_children(subchains_node, "SUBCHAIN"):
+            sc_header = dict(header)
+            sc_id = self._find_child(subchain, "SUBCHAINID")
+            if sc_id is not None:
+                sc_header["SubChainId"] = self._text(sc_id)
+            sc_name = self._find_child(subchain, "SUBCHAINNAME")
+            if sc_name is not None:
+                sc_header["SubChainName"] = self._text(sc_name)
+
+            sc_stores = self._find_child(subchain, "STORES")
+            if sc_stores is not None:
+                records.extend(self._parse_stores(sc_stores, sc_header))
+
+        return records
+
+    def _parse_stores(
+        self, stores_node: ET.Element, header: Dict[str, str]
+    ) -> List[Dict[str, str]]:
         records: List[Dict[str, str]] = []
         for store in self._find_children(stores_node, "STORE"):
             rec: Dict[str, str] = dict(header)
@@ -85,5 +112,4 @@ class ShufersalStoresParser(Parser):
                 key = self._normalized_key(self._local_name(child.tag))
                 rec[key] = self._text(child)
             records.append(rec)
-
         return records
