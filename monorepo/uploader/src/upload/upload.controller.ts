@@ -18,7 +18,7 @@ import { ApiKeyGuard } from "./guards/api-key.guard";
 export class UploadController {
   constructor(private readonly uploadService: UploadService) {}
 
-  @Post('/prices')
+  @Post("/prices")
   @HttpCode(200)
   @UseGuards(ApiKeyGuard)
   @ApiOperation({ summary: "Upload prices to object storage and PostgreSQL" })

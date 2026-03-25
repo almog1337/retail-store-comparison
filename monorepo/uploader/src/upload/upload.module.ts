@@ -5,6 +5,7 @@ import { ApiKeyGuard } from "./guards/api-key.guard";
 import { UploadController } from "./upload.controller";
 import { UploadService } from "./upload.service";
 import { RecordMapperFactory } from "./mappers/abstractions/prices/record-mapper.factory";
+import { ParsingHelpers } from "./mappers/abstractions/prices/parsing-helpers";
 import { ShufersalRecordMapper } from "./mappers/shufersal/prices/shufersal-record.mapper";
 import { RamiLevyRecordMapper } from "./mappers/rami-levy/prices/rami-levy-record.mapper";
 import { StoreMapperFactory } from "./mappers/abstractions/stores/store-mapper.factory";
@@ -16,6 +17,7 @@ import { RamiLevyStoreMapper } from "./mappers/rami-levy/stores/rami-levy-stores
   controllers: [UploadController],
   providers: [
     UploadService,
+    ParsingHelpers,
     RecordMapperFactory,
     StoreMapperFactory,
     ShufersalRecordMapper,
