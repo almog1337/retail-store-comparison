@@ -80,3 +80,16 @@ aws --endpoint-url http://localhost:9000 s3 cp ./sample.jsonl s3://$MINIO_BUCKET
 ```
 
 Recommended layout: `bronze/` (raw), `silver/` (cleaned Parquet/Delta/Iceberg), `gold/` (aggregates). Partition by `ingest_date=YYYY-MM-DD/` and optionally `chain_id=` and `store_id=` for pruning.
+
+## 4. Superset Troubleshooting
+
+If Superset fails during startup with an error like `database "superset" does not exist`, the usual cause is an existing Postgres volume that skipped first-run init scripts.
+
+This stack now includes a one-shot `superset-db-init` service in Compose that creates `SUPERSET_DB` (default: `superset`) if missing, before `superset-init` runs migrations.
+
+If needed, restart the stack:
+
+```bash
+docker compose down
+docker compose up -d
+```

@@ -40,6 +40,28 @@ services:
   # ---------------------------------------------------------------------------
   # Apache Superset
   # ---------------------------------------------------------------------------
+  superset-db-init:
+    image: postgres:latest
+    container_name: superset-db-init
+    restart: "no"
+    env_file:
+      - ../.env
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        set -euo pipefail
+        DB_NAME="$${SUPERSET_DB:-superset}"
+        EXISTS="$$(PGPASSWORD="$${POSTGRES_PASSWORD}" psql -h db -U "$${POSTGRES_USER}" -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname='$$DB_NAME'")"
+        if [ "$$EXISTS" != "1" ]; then
+          PGPASSWORD="$${POSTGRES_PASSWORD}" psql -h db -U "$${POSTGRES_USER}" -d postgres -v ON_ERROR_STOP=1 -c "CREATE DATABASE \"$$DB_NAME\";"
+          echo "Created Superset metadata database: $$DB_NAME"
+        else
+          echo "Superset metadata database already exists: $$DB_NAME"
+        fi
+    depends_on:
+      db:
+        condition: service_healthy
+
   superset-redis:
     image: redis:7
     container_name: superset-redis
@@ -76,6 +98,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      superset-db-init:
+        condition: service_completed_successfully
       superset-redis:
         condition: service_started
 
@@ -108,12 +132,26 @@ services:
       DATABASE_HOST: db
       REDIS_HOST: superset-redis
       PYTHONPATH: /app/pythonpath:/app/superset_config
-    command: ["celery", "--app=superset.tasks.celery_app:app", "worker", "--pool=prefork", "-O", "fair", "-c", "2"]
+    command:
+      [
+        "celery",
+        "--app=superset.tasks.celery_app:app",
+        "worker",
+        "--pool=prefork",
+        "-O",
+        "fair",
+        "-c",
+        "2",
+      ]
     volumes:
       - superset_home:/app/superset_home
       - ./superset/superset_config.py:/app/superset_config/superset_config.py:ro
     healthcheck:
-      test: ["CMD-SHELL", "celery -A superset.tasks.celery_app:app inspect ping -d celery@$$HOSTNAME"]
+      test:
+        [
+          "CMD-SHELL",
+          "celery -A superset.tasks.celery_app:app inspect ping -d celery@$$HOSTNAME",
+        ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -131,7 +169,14 @@ services:
       DATABASE_HOST: db
       REDIS_HOST: superset-redis
       PYTHONPATH: /app/pythonpath:/app/superset_config
-    command: ["celery", "--app=superset.tasks.celery_app:app", "beat", "--pidfile", "/tmp/celerybeat.pid"]
+    command:
+      [
+        "celery",
+        "--app=superset.tasks.celery_app:app",
+        "beat",
+        "--pidfile",
+        "/tmp/celerybeat.pid",
+      ]
     volumes:
       - superset_home:/app/superset_home
       - ./superset/superset_config.py:/app/superset_config/superset_config.py:ro
