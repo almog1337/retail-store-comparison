@@ -1,0 +1,13 @@
+backup_created_at=20260325_190145
+compose_file=/c/Users/User/Desktop/Retail Store Comparison/databases/docker-compose.yml
+db_container=retail-postgres
+superset_container=superset
+superset_db_name=superset
+files:
+  - superset_metadata.dump
+  - superset_home.tgz
+  - superset_config.py
+  - env.superset.snapshot (optional)
+notes:
+  - Restore requires matching SUPERSET_SECRET_KEY for encrypted connection passwords.
+  - Metadata dump contains dashboards, charts, datasets, saved queries, and DB connections.

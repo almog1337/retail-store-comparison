@@ -93,3 +93,42 @@ If needed, restart the stack:
 docker compose down
 docker compose up -d
 ```
+
+## 5. Superset Backup and Restore
+
+Use these scripts to export/import Superset metadata and saved state:
+
+- Metadata DB (dashboards, charts, datasets, saved queries, DB connections)
+- `/app/superset_home`
+- `superset_config.py`
+
+### Export backup
+
+```bash
+./scripts/export_superset_backup.sh
+```
+
+Optional custom destination:
+
+```bash
+./scripts/export_superset_backup.sh ./backups/superset_manual
+```
+
+### Import backup
+
+```bash
+./scripts/import_superset_backup.sh ./backups/superset_YYYYMMDD_HHMMSS
+```
+
+If you omit the backup path, the script automatically restores the latest folder from `./backups/superset_*`:
+
+```bash
+./scripts/import_superset_backup.sh
+```
+
+If no backups are found, it prints a message and exits.
+
+Important:
+
+- Keep the same `SUPERSET_SECRET_KEY` between export and import environments, otherwise stored database passwords in Superset connections may not decrypt.
+- Run from the `databases/` directory (or pass paths accordingly).
